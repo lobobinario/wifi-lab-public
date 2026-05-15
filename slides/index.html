@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Confiar en la red — Lab de WiFi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true"></div>
+
+    <main class="deck-app tone-blue mode-normal">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Enterprise WiFi Security Lab</p>
+          <h1>Confiar en la red: el juego de detectives</h1>
+        </div>
+        <div class="status">
+          <span class="mode-badge" id="mode-badge">NORMAL</span>
+          <span id="counter" class="hint">01 / 21</span>
+        </div>
+      </header>
+
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-fill" id="progress"></div>
+      </div>
+
+      <section class="stage-layout">
+        <aside class="rail" aria-label="Índice de módulos">
+          <div class="rail-module" data-module="0">
+            <button class="rail-title" data-first="0">0 · Bienvenida</button>
+            <div class="rail-dots" id="dots-0"></div>
+          </div>
+          <div class="rail-module" data-module="1">
+            <button class="rail-title" data-first="3">1 · ¿Quién manda en la red?</button>
+            <div class="rail-dots" id="dots-1"></div>
+          </div>
+          <div class="rail-module" data-module="2">
+            <button class="rail-title" data-first="6">2 · HTTP al desnudo</button>
+            <div class="rail-dots" id="dots-2"></div>
+          </div>
+          <div class="rail-module" data-module="3">
+            <button class="rail-title" data-first="9">3 · El cartero falso (MITM)</button>
+            <div class="rail-dots" id="dots-3"></div>
+          </div>
+          <div class="rail-module" data-module="4">
+            <button class="rail-title" data-first="13">4 · Cuando te fías del espía</button>
+            <div class="rail-dots" id="dots-4"></div>
+          </div>
+          <div class="rail-module" data-module="5">
+            <button class="rail-title" data-first="16">5 · Las huellas que dejas</button>
+            <div class="rail-dots" id="dots-5"></div>
+          </div>
+          <div class="rail-module" data-module="6">
+            <button class="rail-title" data-first="18">6 · Reglas de supervivencia</button>
+            <div class="rail-dots" id="dots-6"></div>
+          </div>
+        </aside>
+
+        <div class="viewport">
+          <!-- ============================================================ -->
+          <!-- MÓDULO 0 — BIENVENIDA (tone: blue / mode: normal) -->
+          <!-- ============================================================ -->
+
+          <article class="slide is-active" data-module="0" data-tone="blue">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#7fb4ca" stop-opacity="0.5" />
+                    <stop offset="100%" stop-color="#7fb4ca" stop-opacity="0" />
+                  </radialGradient>
+                </defs>
+                <rect width="400" height="300" fill="#06080f" />
+                <circle cx="200" cy="150" r="120" fill="url(#glow1)" />
+                <circle cx="200" cy="150" r="60" fill="none" stroke="#7fb4ca" stroke-width="2" opacity="0.4" />
+                <circle cx="200" cy="150" r="90" fill="none" stroke="#7fb4ca" stroke-width="1.5" opacity="0.25" />
+                <circle cx="200" cy="150" r="120" fill="none" stroke="#7fb4ca" stroke-width="1" opacity="0.15" />
+                <text x="200" y="145" text-anchor="middle" fill="#f3f6f9" font-family="Space Grotesk" font-size="42" font-weight="700">🔍</text>
+                <text x="200" y="180" text-anchor="middle" fill="#e0c15a" font-family="Space Grotesk" font-size="11" font-weight="600" letter-spacing="2">DETECTIVE MODE</text>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 0 · Bienvenida</p>
+              <h2>Confiar en la red: el juego de detectives</h2>
+              <p>
+                Hoy vamos a investigar algo que usas todos los días sin pensar: <strong>el WiFi</strong>.
+                Te conectas a una red, pones contraseñas, mandas mensajes, y todo eso pasa por
+                <em>las manos de alguien</em>.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-family: 'Source Serif 4', serif; font-style: italic;">
+                "El candado del navegador te dice que el canal está cerrado.<br/>
+                No te dice quién está al otro lado."
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="0" data-tone="blue">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk" font-size="13" fill="#f3f6f9">
+                  <circle cx="60" cy="60" r="18" fill="#7fb4ca" />
+                  <text x="60" y="65" text-anchor="middle" fill="#06080f" font-weight="700">1</text>
+                  <text x="90" y="65" fill="#f3f6f9">Qué pasa en una red</text>
+
+                  <circle cx="60" cy="115" r="18" fill="#b7cc85" />
+                  <text x="60" y="120" text-anchor="middle" fill="#06080f" font-weight="700">2</text>
+                  <text x="90" y="120" fill="#f3f6f9">Qué se ve y qué no se ve</text>
+
+                  <circle cx="60" cy="170" r="18" fill="#ff8dd7" />
+                  <text x="60" y="175" text-anchor="middle" fill="#06080f" font-weight="700">3</text>
+                  <text x="90" y="175" fill="#f3f6f9">Cómo un atacante intercepta</text>
+
+                  <circle cx="60" cy="225" r="18" fill="#deba87" />
+                  <text x="60" y="230" text-anchor="middle" fill="#06080f" font-weight="700">4</text>
+                  <text x="90" y="230" fill="#f3f6f9">Cómo darte cuenta</text>
+
+                  <circle cx="60" cy="280" r="18" fill="#7aa89f" />
+                  <text x="60" y="285" text-anchor="middle" fill="#06080f" font-weight="700">5</text>
+                  <text x="90" y="285" fill="#f3f6f9">Cómo protegerte</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 0 · Lo que te vas a llevar</p>
+              <h2>5 cosas que vas a saber al final</h2>
+              <p>
+                No es una clase de teoría. Es un <strong>laboratorio en vivo</strong>: tu profe va a
+                montar una red WiFi falsa, tú te vas a conectar, y vamos a ver juntos
+                <em>qué se puede espiar y qué no</em>.
+              </p>
+              <p style="margin-top: 12px;">
+                Al final vas a poder detectar señales de redes <strong>tramposas</strong> y vas a
+                tener reglas concretas para usar WiFi públicas sin que te roben datos.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="0" data-tone="blue">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <rect x="40" y="50" width="320" height="200" rx="14" fill="#1c212c" stroke="#313342" />
+                  <text x="200" y="80" text-anchor="middle" fill="#e0c15a" font-size="11" letter-spacing="2" font-weight="600">EL JUEGO DE HOY</text>
+
+                  <text x="60" y="120" fill="#7fb4ca" font-size="14" font-weight="600">📡 Tú</text>
+                  <text x="80" y="140" fill="#A1AABB" font-size="12">te conectas al WiFi del lab</text>
+
+                  <text x="60" y="170" fill="#ff8dd7" font-size="14" font-weight="600">🕵️ La Pi</text>
+                  <text x="80" y="190" fill="#A1AABB" font-size="12">finge ser un WiFi normal</text>
+
+                  <text x="60" y="220" fill="#b7cc85" font-size="14" font-weight="600">🔍 El profe</text>
+                  <text x="80" y="240" fill="#A1AABB" font-size="12">te muestra qué se ve en el medio</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 0 · El setup</p>
+              <h2>Cómo está montado el laboratorio</h2>
+              <p>
+                Esa <strong>Raspberry Pi</strong> que ves ahí emite un WiFi llamado
+                <code style="color: var(--accent); font-family: 'JetBrains Mono';">CorpNet-Enterprise</code>.
+                Parece una red normal de una oficina.
+              </p>
+              <p style="margin-top: 12px;">
+                <strong>No lo es.</strong> Está espiando todo lo que pasa por ahí. Lo bueno es que
+                el espía es tu profesor, no un atacante real. Y vamos a ver cuánto puede ver.
+              </p>
+              <p style="margin-top: 14px; color: var(--green); font-weight: 600;">
+                ⚠️ Durante la clase: no metas contraseñas reales, no entres a tu correo.
+                Es un laboratorio, no la red de tu casa.
+              </p>
+            </div>
+          </article>
+
+          <!-- ============================================================ -->
+          <!-- MÓDULO 1 — ¿QUIÉN MANDA EN LA RED? (tone: yellow / command) -->
+          <!-- ============================================================ -->
+
+          <article class="slide" data-module="1" data-tone="yellow">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk" font-size="12" fill="#f3f6f9">
+                  <text x="200" y="40" text-anchor="middle" fill="#e0c15a" font-size="11" letter-spacing="2" font-weight="600">EL CAMINO DE UN DATO</text>
+
+                  <rect x="150" y="60" width="100" height="36" rx="8" fill="#1c212c" stroke="#7fb4ca" />
+                  <text x="200" y="83" text-anchor="middle">📱 Tú</text>
+
+                  <line x1="200" y1="96" x2="200" y2="120" stroke="#8394A3" stroke-width="2" />
+                  <polygon points="195,118 200,128 205,118" fill="#8394A3" />
+
+                  <rect x="150" y="128" width="100" height="36" rx="8" fill="#2a3142" stroke="#e0c15a" />
+                  <text x="200" y="151" text-anchor="middle">📡 WiFi (AP)</text>
+                  <text x="280" y="151" fill="#cb7c94" font-size="11">← aquí</text>
+
+                  <line x1="200" y1="164" x2="200" y2="188" stroke="#8394A3" stroke-width="2" />
+                  <polygon points="195,186 200,196 205,186" fill="#8394A3" />
+
+                  <rect x="150" y="196" width="100" height="36" rx="8" fill="#2a3142" stroke="#e0c15a" />
+                  <text x="200" y="219" text-anchor="middle">🌐 Router</text>
+                  <text x="280" y="219" fill="#cb7c94" font-size="11">← o aquí</text>
+
+                  <line x1="200" y1="232" x2="200" y2="256" stroke="#8394A3" stroke-width="2" />
+                  <polygon points="195,254 200,264 205,254" fill="#8394A3" />
+
+                  <text x="200" y="280" text-anchor="middle" fill="#A1AABB" font-size="11">Internet</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 1 · El modelo de amenaza</p>
+              <h2>La red no es neutral</h2>
+              <p>
+                Cuando tu mensaje sale de tu móvil, no llega <em>volando</em> al servidor. Pasa
+                por <strong>muchas manos</strong> en el camino.
+              </p>
+              <p style="margin-top: 12px;">
+                Quien controla el <strong>WiFi</strong> ve todo lo que pasa.<br/>
+                Quien controla el <strong>router</strong> también.<br/>
+                Cualquiera de los dos puede ser un atacante.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Regla #1: cuando te conectas a una red ajena, le estás dando a alguien una
+                ventana a tu tráfico. Punto.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="1" data-tone="yellow">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk" font-size="11">
+                  <rect x="20" y="40" width="170" height="230" rx="12" fill="#1c212c" stroke="#cb7c94" />
+                  <text x="105" y="65" text-anchor="middle" fill="#cb7c94" font-size="13" font-weight="700">WiFi ABIERTA</text>
+                  <text x="105" y="88" text-anchor="middle" fill="#A1AABB">🔊 Hablar a gritos</text>
+                  <text x="105" y="110" text-anchor="middle" fill="#A1AABB">en una plaza</text>
+                  <text x="35" y="150" fill="#f3f6f9">• Todo el mundo</text>
+                  <text x="35" y="170" fill="#f3f6f9">  con una radio</text>
+                  <text x="35" y="190" fill="#f3f6f9">  te escucha</text>
+                  <text x="35" y="220" fill="#cb7c94">• Sin contraseña</text>
+                  <text x="35" y="240" fill="#cb7c94">• Sin cifrado de</text>
+                  <text x="35" y="255" fill="#cb7c94">  radio</text>
+
+                  <rect x="210" y="40" width="170" height="230" rx="12" fill="#1c212c" stroke="#b7cc85" />
+                  <text x="295" y="65" text-anchor="middle" fill="#b7cc85" font-size="13" font-weight="700">WiFi con CLAVE</text>
+                  <text x="295" y="88" text-anchor="middle" fill="#A1AABB">🤫 Susurrar en un</text>
+                  <text x="295" y="110" text-anchor="middle" fill="#A1AABB">idioma secreto</text>
+                  <text x="225" y="150" fill="#f3f6f9">• El de fuera</text>
+                  <text x="225" y="170" fill="#f3f6f9">  no entiende</text>
+                  <text x="225" y="200" fill="#deba87">• PERO el dueño</text>
+                  <text x="225" y="220" fill="#deba87">  del WiFi sí</text>
+                  <text x="225" y="245" fill="#deba87">• Y todos los que</text>
+                  <text x="225" y="260" fill="#deba87">  tienen la clave</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 1 · WiFi abierta vs con clave</p>
+              <h2>¿Para qué sirve la contraseña del WiFi?</h2>
+              <p>
+                <strong>WiFi abierta:</strong> es hablar a gritos. Cualquiera con una antena
+                te escucha sin esfuerzo (cafeterías, aeropuertos, hoteles).
+              </p>
+              <p style="margin-top: 10px;">
+                <strong>WiFi con contraseña (WPA):</strong> es hablar bajito en un idioma que solo
+                conoce el club. Funciona contra <em>vecinos curiosos</em>, pero…
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Cualquiera que tenga la clave puede entender todo. Y el dueño del WiFi
+                <strong>siempre</strong> la tiene.
+              </p>
+              <p style="margin-top: 10px; font-style: italic; color: var(--subtext);">
+                Por eso el WiFi del centro comercial no te protege del centro comercial.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="1" data-tone="yellow">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#e0c15a" font-size="11" letter-spacing="2" font-weight="600">LO QUE PUEDE PASAR</text>
+
+                  <rect x="30" y="60" width="160" height="50" rx="8" fill="#1c212c" stroke="#cb7c94" />
+                  <text x="110" y="80" text-anchor="middle" fill="#cb7c94" font-size="12" font-weight="600">🎧 Espiar</text>
+                  <text x="110" y="98" text-anchor="middle" fill="#A1AABB" font-size="10">Leer lo que mandas</text>
+
+                  <rect x="210" y="60" width="160" height="50" rx="8" fill="#1c212c" stroke="#ff8dd7" />
+                  <text x="290" y="80" text-anchor="middle" fill="#ff8dd7" font-size="12" font-weight="600">✂️ Modificar</text>
+                  <text x="290" y="98" text-anchor="middle" fill="#A1AABB" font-size="10">Cambiar lo que llega</text>
+
+                  <rect x="30" y="125" width="160" height="50" rx="8" fill="#1c212c" stroke="#deba87" />
+                  <text x="110" y="145" text-anchor="middle" fill="#deba87" font-size="12" font-weight="600">🎭 Suplantar</text>
+                  <text x="110" y="163" text-anchor="middle" fill="#A1AABB" font-size="10">Fingir ser otro WiFi</text>
+
+                  <rect x="210" y="125" width="160" height="50" rx="8" fill="#1c212c" stroke="#a3b5d6" />
+                  <text x="290" y="145" text-anchor="middle" fill="#a3b5d6" font-size="12" font-weight="600">🔀 Redirigir</text>
+                  <text x="290" y="163" text-anchor="middle" fill="#A1AABB" font-size="10">Mandarte a una página falsa</text>
+
+                  <rect x="30" y="190" width="160" height="50" rx="8" fill="#1c212c" stroke="#7aa89f" />
+                  <text x="110" y="210" text-anchor="middle" fill="#7aa89f" font-size="12" font-weight="600">📉 Bajar de nivel</text>
+                  <text x="110" y="228" text-anchor="middle" fill="#A1AABB" font-size="10">HTTPS → HTTP sin cifrado</text>
+
+                  <rect x="210" y="190" width="160" height="50" rx="8" fill="#1c212c" stroke="#b7cc85" />
+                  <text x="290" y="210" text-anchor="middle" fill="#b7cc85" font-size="12" font-weight="600">🔓 Inspeccionar</text>
+                  <text x="290" y="228" text-anchor="middle" fill="#A1AABB" font-size="10">Abrir el sobre del HTTPS</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 1 · El menú del atacante</p>
+              <h2>¿Qué se puede hacer desde el medio?</h2>
+              <p>
+                Estar en el medio de una conversación (lo que se llama
+                <strong>"man in the middle"</strong>) no es solo escuchar. Hay seis movimientos
+                clásicos, y vamos a ver tres de ellos en vivo.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Cuanto más controlas el camino, más cosas puedes hacer. Si controlas el WiFi,
+                las controlas todas.
+              </p>
+            </div>
+          </article>
+
+          <!-- ============================================================ -->
+          <!-- MÓDULO 2 — HTTP AL DESNUDO (tone: green / insert) -->
+          <!-- ============================================================ -->
+
+          <article class="slide" data-module="2" data-tone="green">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <rect x="40" y="40" width="320" height="100" rx="10" fill="#1c212c" stroke="#cb7c94" stroke-width="2" />
+                  <text x="200" y="60" text-anchor="middle" fill="#cb7c94" font-size="11" letter-spacing="2" font-weight="600">HTTP · POSTAL ABIERTA</text>
+                  <text x="55" y="85" fill="#f3f6f9" font-family="JetBrains Mono" font-size="11">GET /login</text>
+                  <text x="55" y="103" fill="#f3f6f9" font-family="JetBrains Mono" font-size="11">user=ana</text>
+                  <text x="55" y="121" fill="#f3f6f9" font-family="JetBrains Mono" font-size="11">pass=123456</text>
+                  <text x="350" y="100" text-anchor="end" font-size="22">👁️</text>
+
+                  <rect x="40" y="170" width="320" height="100" rx="10" fill="#1c212c" stroke="#b7cc85" stroke-width="2" />
+                  <text x="200" y="190" text-anchor="middle" fill="#b7cc85" font-size="11" letter-spacing="2" font-weight="600">HTTPS · SOBRE CERRADO</text>
+                  <text x="55" y="215" fill="#f3f6f9" font-family="JetBrains Mono" font-size="11">█▓░▒▓██▒░█▓▒</text>
+                  <text x="55" y="233" fill="#f3f6f9" font-family="JetBrains Mono" font-size="11">▒░█▓██▒░▓█▓░</text>
+                  <text x="55" y="251" fill="#f3f6f9" font-family="JetBrains Mono" font-size="11">█▓▒░██▒▓░█▓▒</text>
+                  <text x="350" y="230" text-anchor="end" font-size="22">🔒</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 2 · HTTP vs HTTPS</p>
+              <h2>La postal y el sobre</h2>
+              <p>
+                <strong>HTTP</strong> es como una postal: el cartero, el portero del edificio
+                y cualquiera que la coja <em>la pueden leer entera</em>. Usuario, contraseña,
+                qué dice el mensaje, todo.
+              </p>
+              <p style="margin-top: 12px;">
+                <strong>HTTPS</strong> es como meter la carta en un sobre cerrado y blindado.
+                El cartero la entrega pero no la puede abrir.
+              </p>
+              <p style="margin-top: 14px; color: var(--green); font-weight: 600;">
+                Por eso el candadito 🔒 del navegador <strong>importa tanto</strong>.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="2" data-tone="green">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <rect x="40" y="50" width="320" height="220" rx="12" fill="#1c212c" stroke="#deba87" />
+                  <text x="200" y="80" text-anchor="middle" fill="#deba87" font-size="11" letter-spacing="2" font-weight="600">EL SOBRE ESTÁ CERRADO</text>
+                  <text x="200" y="100" text-anchor="middle" fill="#A1AABB" font-size="11">pero igual se ve esto:</text>
+
+                  <text x="60" y="135" fill="#f3f6f9" font-size="12">📮 A quién se lo mandas</text>
+                  <text x="80" y="153" fill="#A1AABB" font-size="11">→ instagram.com, banco.com…</text>
+
+                  <text x="60" y="180" fill="#f3f6f9" font-size="12">⏰ Cuándo</text>
+                  <text x="80" y="198" fill="#A1AABB" font-size="11">→ horario, frecuencia</text>
+
+                  <text x="60" y="225" fill="#f3f6f9" font-size="12">📏 Cuánto pesa</text>
+                  <text x="80" y="243" fill="#A1AABB" font-size="11">→ ¿escribiste poco o subiste un vídeo?</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 2 · Lo que HTTPS NO esconde</p>
+              <h2>El sobre tiene una dirección visible</h2>
+              <p>
+                Aunque el contenido esté cifrado, el cartero <em>tiene que saber a dónde
+                llevarlo</em>. Eso significa que igual se ve:
+              </p>
+              <p style="margin-top: 12px;">
+                <strong>El destinatario</strong> (a qué sitio te conectas),
+                <strong>la hora</strong> y <strong>el tamaño</strong>.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Resultado: alguien puede deducir bastante sin abrir tu sobre. Si te conectaste
+                a "telegram.com" a las 3 de la madrugada, eso ya cuenta una historia.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="2" data-tone="green">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="JetBrains Mono">
+                  <rect x="20" y="40" width="360" height="240" rx="10" fill="#06080f" stroke="#b7cc85" stroke-width="2" />
+                  <rect x="20" y="40" width="360" height="26" rx="10" fill="#b7cc85" />
+                  <text x="35" y="58" fill="#06080f" font-size="11" font-weight="700">▶ terminal · live capture</text>
+
+                  <text x="35" y="90" fill="#7aa89f" font-size="11">$ tcpdump -i wlan0 'tcp port 80'</text>
+                  <text x="35" y="115" fill="#A1AABB" font-size="10">listening on wlan0...</text>
+
+                  <text x="35" y="145" fill="#cb7c94" font-size="11">→ GET /search?q=pokemon HTTP/1.1</text>
+                  <text x="35" y="163" fill="#cb7c94" font-size="11">→ Host: example.com</text>
+                  <text x="35" y="181" fill="#cb7c94" font-size="11">→ Cookie: session=AbC123</text>
+
+                  <text x="35" y="215" fill="#dfbd76" font-size="11">→ POST /login</text>
+                  <text x="35" y="233" fill="#dfbd76" font-size="11">→ user=ana&amp;pass=hola1234</text>
+
+                  <text x="35" y="263" fill="#7aa89f" font-size="10">_</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 2 · Demo en vivo</p>
+              <h2>Mira la pantalla del profe</h2>
+              <p>
+                Ahora el profe va a abrir una terminal y vas a ver, <strong>en tiempo real</strong>,
+                cómo aparecen las peticiones HTTP de los móviles conectados al WiFi del lab.
+              </p>
+              <p style="margin-top: 12px;">
+                Vas a ver dominios, búsquedas, contraseñas escritas en formularios HTTP, cookies
+                de sesión. Todo <strong>sin trucos</strong>. Solo escuchando.
+              </p>
+              <p style="margin-top: 14px; color: var(--green); font-weight: 600;">
+                Mensaje clave: si un sitio te pide contraseña en HTTP (sin 🔒), sal corriendo.
+              </p>
+            </div>
+          </article>
+
+          <!-- ============================================================ -->
+          <!-- MÓDULO 3 — EL CARTERO FALSO / MITM (tone: magenta / visual) -->
+          <!-- ============================================================ -->
+
+          <article class="slide" data-module="3" data-tone="magenta">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#ff8dd7" font-size="11" letter-spacing="2" font-weight="600">EL CARTERO FALSO</text>
+
+                  <rect x="20" y="80" width="80" height="50" rx="8" fill="#1c212c" stroke="#7fb4ca" />
+                  <text x="60" y="105" text-anchor="middle" fill="#f3f6f9" font-size="11">📱 Tú</text>
+                  <text x="60" y="120" text-anchor="middle" fill="#A1AABB" font-size="9">"hola banco"</text>
+
+                  <line x1="100" y1="105" x2="160" y2="105" stroke="#ff8dd7" stroke-width="2" stroke-dasharray="3,3" />
+                  <polygon points="155,100 165,105 155,110" fill="#ff8dd7" />
+
+                  <rect x="160" y="80" width="80" height="50" rx="8" fill="#2a3142" stroke="#ff8dd7" stroke-width="2" />
+                  <text x="200" y="100" text-anchor="middle" fill="#ff8dd7" font-size="11">🎭 ESPÍA</text>
+                  <text x="200" y="118" text-anchor="middle" fill="#A1AABB" font-size="9">(finge ser el banco)</text>
+
+                  <line x1="240" y1="105" x2="300" y2="105" stroke="#8394A3" stroke-width="2" />
+                  <polygon points="295,100 305,105 295,110" fill="#8394A3" />
+
+                  <rect x="300" y="80" width="80" height="50" rx="8" fill="#1c212c" stroke="#b7cc85" />
+                  <text x="340" y="105" text-anchor="middle" fill="#f3f6f9" font-size="11">🏦 Banco</text>
+                  <text x="340" y="120" text-anchor="middle" fill="#A1AABB" font-size="9">real</text>
+
+                  <line x1="100" y1="170" x2="160" y2="170" stroke="#ff8dd7" stroke-width="2" stroke-dasharray="3,3" />
+                  <polygon points="105,165 95,170 105,175" fill="#ff8dd7" />
+                  <line x1="240" y1="170" x2="300" y2="170" stroke="#8394A3" stroke-width="2" />
+                  <polygon points="245,165 235,170 245,175" fill="#8394A3" />
+
+                  <text x="200" y="220" text-anchor="middle" fill="#A1AABB" font-size="11">El espía habla con los dos</text>
+                  <text x="200" y="240" text-anchor="middle" fill="#A1AABB" font-size="11">y nadie se entera.</text>
+                  <text x="200" y="270" text-anchor="middle" fill="#ff8dd7" font-size="12" font-weight="600">Lee todo. Puede cambiar todo.</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 3 · MITM (Man in the Middle)</p>
+              <h2>El cartero falso</h2>
+              <p>
+                Imagina que escribes una carta al banco. El cartero la coge, la lee, escribe
+                una <em>nueva</em> con tu letra, y se la manda al banco. El banco responde,
+                el cartero lee la respuesta, escribe una nueva, y te la entrega.
+              </p>
+              <p style="margin-top: 12px;">
+                Tú crees que hablas con el banco. <strong>El banco cree que habla contigo.</strong>
+                Pero el cartero ve y modifica todo.
+              </p>
+              <p style="margin-top: 14px; color: var(--magenta); font-weight: 600;">
+                Eso es MITM. Y se hace en redes WiFi con una técnica llamada
+                <em>proxy transparente</em>.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="3" data-tone="magenta">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="35" text-anchor="middle" fill="#ff8dd7" font-size="11" letter-spacing="2" font-weight="600">EL PASAPORTE DEL SITIO</text>
+
+                  <rect x="60" y="55" width="280" height="100" rx="10" fill="#1c212c" stroke="#b7cc85" stroke-width="2" />
+                  <text x="80" y="80" fill="#b7cc85" font-size="11" font-weight="600">CERTIFICADO LEGÍTIMO</text>
+                  <text x="80" y="105" fill="#A1AABB" font-size="11">Para:</text>
+                  <text x="125" y="105" fill="#f3f6f9" font-size="11">google.com</text>
+                  <text x="80" y="125" fill="#A1AABB" font-size="11">Emitido por:</text>
+                  <text x="160" y="125" fill="#f3f6f9" font-size="11">Google Trust Services</text>
+                  <text x="80" y="145" fill="#b7cc85" font-size="11">✓ Fiable</text>
+
+                  <rect x="60" y="170" width="280" height="100" rx="10" fill="#1c212c" stroke="#cb7c94" stroke-width="2" />
+                  <text x="80" y="195" fill="#cb7c94" font-size="11" font-weight="600">CERTIFICADO FALSO (el espía)</text>
+                  <text x="80" y="220" fill="#A1AABB" font-size="11">Para:</text>
+                  <text x="125" y="220" fill="#f3f6f9" font-size="11">google.com</text>
+                  <text x="80" y="240" fill="#A1AABB" font-size="11">Emitido por:</text>
+                  <text x="160" y="240" fill="#cb7c94" font-size="11">mitmproxy ← raro</text>
+                  <text x="80" y="260" fill="#cb7c94" font-size="11">✗ Tu navegador grita</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 3 · Certificados</p>
+              <h2>El pasaporte de los sitios web</h2>
+              <p>
+                Cada sitio HTTPS tiene un <strong>pasaporte</strong> (certificado) emitido por
+                una <strong>autoridad de confianza</strong> (como un país emite el DNI). Tu navegador
+                viene con una lista de autoridades en las que confía.
+              </p>
+              <p style="margin-top: 12px;">
+                Cuando el espía se mete en el medio, no puede falsificar el pasaporte real.
+                Te muestra <em>uno hecho por él mismo</em>. Tu navegador lo mira, no lo reconoce…
+                y te avisa.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Ese aviso es tu mejor amigo. Nunca lo ignores.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="3" data-tone="magenta">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <rect x="30" y="50" width="340" height="220" rx="12" fill="#1c212c" stroke="#cb7c94" stroke-width="2" />
+                  <text x="200" y="85" text-anchor="middle" font-size="36">⚠️</text>
+                  <text x="200" y="125" text-anchor="middle" fill="#cb7c94" font-size="14" font-weight="700">Tu conexión no es privada</text>
+                  <text x="200" y="155" text-anchor="middle" fill="#A1AABB" font-size="11">NET::ERR_CERT_AUTHORITY_INVALID</text>
+
+                  <line x1="60" y1="180" x2="340" y2="180" stroke="#313342" />
+
+                  <text x="60" y="210" fill="#A1AABB" font-size="11">Alguien podría estar interceptando</text>
+                  <text x="60" y="225" fill="#A1AABB" font-size="11">tu conexión a example.com</text>
+
+                  <rect x="60" y="240" width="120" height="22" rx="4" fill="#2a3142" />
+                  <text x="120" y="255" text-anchor="middle" fill="#f3f6f9" font-size="11">← Volver</text>
+
+                  <rect x="220" y="240" width="120" height="22" rx="4" fill="#06080f" stroke="#313342" />
+                  <text x="280" y="255" text-anchor="middle" fill="#8394A3" font-size="11">Avanzado</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 3 · Demo A — sin trampa instalada</p>
+              <h2>El navegador te avisa</h2>
+              <p>
+                Conéctate al WiFi del lab y entra a <strong>cualquier sitio HTTPS</strong>
+                (por ejemplo example.com).
+              </p>
+              <p style="margin-top: 12px;">
+                Tu navegador va a mostrar <strong>esta pantalla roja</strong>. Eso pasa porque
+                vio el pasaporte falso del espía, no lo reconoce, y te frena.
+              </p>
+              <p style="margin-top: 14px; color: var(--magenta); font-weight: 600;">
+                Mira los detalles del certificado: vas a ver "<em>Emitido por: mitmproxy</em>".
+                Ahí está la prueba de que alguien se metió.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="3" data-tone="magenta">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#e0c15a" font-size="11" letter-spacing="2" font-weight="600">CÓMO LEER UN CERTIFICADO</text>
+
+                  <rect x="40" y="60" width="320" height="32" rx="6" fill="#1c212c" stroke="#313342" />
+                  <text x="60" y="80" fill="#7fb4ca" font-size="13">1.</text>
+                  <text x="85" y="80" fill="#f3f6f9" font-size="12">Clic en el 🔒 del navegador</text>
+
+                  <rect x="40" y="100" width="320" height="32" rx="6" fill="#1c212c" stroke="#313342" />
+                  <text x="60" y="120" fill="#7fb4ca" font-size="13">2.</text>
+                  <text x="85" y="120" fill="#f3f6f9" font-size="12">"Conexión segura" → "Más información"</text>
+
+                  <rect x="40" y="140" width="320" height="32" rx="6" fill="#1c212c" stroke="#313342" />
+                  <text x="60" y="160" fill="#7fb4ca" font-size="13">3.</text>
+                  <text x="85" y="160" fill="#f3f6f9" font-size="12">"Ver certificado"</text>
+
+                  <rect x="40" y="180" width="320" height="32" rx="6" fill="#1c212c" stroke="#e0c15a" stroke-width="2" />
+                  <text x="60" y="200" fill="#e0c15a" font-size="13" font-weight="700">4.</text>
+                  <text x="85" y="200" fill="#e0c15a" font-size="12" font-weight="600">Mira "Emitido por"</text>
+
+                  <rect x="40" y="225" width="320" height="50" rx="6" fill="#06080f" stroke="#deba87" />
+                  <text x="200" y="245" text-anchor="middle" fill="#A1AABB" font-size="10">¿Es Google Trust, DigiCert, Let's Encrypt?</text>
+                  <text x="200" y="262" text-anchor="middle" fill="#b7cc85" font-size="11" font-weight="600">→ OK</text>
+
+                  <text x="200" y="280" text-anchor="middle" fill="#cb7c94" font-size="10">¿Es algo desconocido o tu router? → 🚩</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 3 · Detective tip</p>
+              <h2>Investiga un certificado tú mismo</h2>
+              <p>
+                No hace falta saber programar para revisar quién emitió el pasaporte de un sitio.
+                Todo navegador te deja verlo en <strong>cuatro clics</strong>.
+              </p>
+              <p style="margin-top: 12px;">
+                Lo que tienes que mirar es <strong>"Emitido por"</strong>. Si es una autoridad
+                conocida (Google, Let's Encrypt, DigiCert), bien. Si dice algo raro, el nombre
+                de tu red, o "mitmproxy"… alguien se metió.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Ejercicio: mientras estás en el WiFi del lab, abre example.com y revísalo.
+              </p>
+            </div>
+          </article>
+
+          <!-- ============================================================ -->
+          <!-- MÓDULO 4 — CUANDO TE FÍAS DEL ESPÍA (tone: orange / replace) -->
+          <!-- ============================================================ -->
+
+          <article class="slide" data-module="4" data-tone="orange">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#deba87" font-size="11" letter-spacing="2" font-weight="600">EL TRUCO MÁS PELIGROSO</text>
+
+                  <rect x="30" y="60" width="340" height="80" rx="10" fill="#1c212c" stroke="#cb7c94" />
+                  <text x="200" y="90" text-anchor="middle" fill="#cb7c94" font-size="13" font-weight="700">"Instala este certificado"</text>
+                  <text x="200" y="115" text-anchor="middle" fill="#A1AABB" font-size="11">"para poder usar el WiFi del sitio"</text>
+
+                  <line x1="200" y1="150" x2="200" y2="170" stroke="#deba87" stroke-width="2" />
+                  <polygon points="195,168 200,178 205,168" fill="#deba87" />
+
+                  <rect x="30" y="180" width="340" height="90" rx="10" fill="#1c212c" stroke="#deba87" stroke-width="2" />
+                  <text x="200" y="205" text-anchor="middle" fill="#deba87" font-size="12" font-weight="600">Si lo instalas…</text>
+                  <text x="200" y="230" text-anchor="middle" fill="#f3f6f9" font-size="11">tu navegador va a confiar en el espía</text>
+                  <text x="200" y="250" text-anchor="middle" fill="#cb7c94" font-size="11" font-weight="600">y NUNCA MÁS te va a avisar.</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 4 · La trampa</p>
+              <h2>"Instala este certificado y todo funciona"</h2>
+              <p>
+                Un WiFi público te muestra un cartel: <em>"Para conectarte, descarga este
+                certificado e instálalo en tu móvil"</em>.
+              </p>
+              <p style="margin-top: 12px;">
+                <strong>NUNCA lo hagas.</strong> Cuando instalas un certificado, le estás diciendo
+                a tu móvil: <em>"Confía en cualquier sitio que este señor firme"</em>.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Es como darle al cartero falso un sello oficial de Correos. A partir
+                de ahí puede firmar cualquier cosa y la vas a aceptar.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="4" data-tone="orange">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk" font-size="11">
+                  <rect x="20" y="40" width="170" height="240" rx="10" fill="#1c212c" stroke="#cb7c94" />
+                  <text x="105" y="65" text-anchor="middle" fill="#cb7c94" font-size="12" font-weight="700">DEMO A</text>
+                  <text x="105" y="83" text-anchor="middle" fill="#A1AABB" font-size="10">(sin instalar nada)</text>
+
+                  <text x="30" y="115" fill="#A1AABB">CA instalada:</text>
+                  <text x="30" y="130" fill="#b7cc85">→ No</text>
+
+                  <text x="30" y="155" fill="#A1AABB">Aviso navegador:</text>
+                  <text x="30" y="170" fill="#b7cc85">→ Sí ⚠️</text>
+
+                  <text x="30" y="195" fill="#A1AABB">¿El espía ve?</text>
+                  <text x="30" y="210" fill="#b7cc85">→ No (cortó)</text>
+
+                  <text x="30" y="240" fill="#A1AABB">Equivale a:</text>
+                  <text x="30" y="258" fill="#cb7c94">WiFi pública</text>
+                  <text x="30" y="272" fill="#cb7c94">o ataque</text>
+
+                  <rect x="210" y="40" width="170" height="240" rx="10" fill="#1c212c" stroke="#deba87" stroke-width="2" />
+                  <text x="295" y="65" text-anchor="middle" fill="#deba87" font-size="12" font-weight="700">DEMO B</text>
+                  <text x="295" y="83" text-anchor="middle" fill="#A1AABB" font-size="10">(con CA instalada)</text>
+
+                  <text x="220" y="115" fill="#A1AABB">CA instalada:</text>
+                  <text x="220" y="130" fill="#cb7c94">→ Sí</text>
+
+                  <text x="220" y="155" fill="#A1AABB">Aviso navegador:</text>
+                  <text x="220" y="170" fill="#cb7c94">→ No 🔒 verde</text>
+
+                  <text x="220" y="195" fill="#A1AABB">¿El espía ve?</text>
+                  <text x="220" y="210" fill="#cb7c94">→ TODO</text>
+
+                  <text x="220" y="240" fill="#A1AABB">Equivale a:</text>
+                  <text x="220" y="258" fill="#deba87">Red corporativa</text>
+                  <text x="220" y="272" fill="#deba87">con inspección</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 4 · Demo B en vivo</p>
+              <h2>Demo A vs Demo B</h2>
+              <p>
+                En la <strong>Demo B</strong>, el profe instala la CA en un móvil de
+                laboratorio (no en uno tuyo). Vas a ver el mismo sitio, el mismo WiFi, el mismo
+                proxy en el medio… <strong>pero sin ningún aviso</strong>.
+              </p>
+              <p style="margin-top: 12px;">
+                El candado aparece verde, todo se ve normal. Y mientras tanto, el profe muestra
+                en otra pantalla cómo lee tus correos, tus búsquedas, los formularios.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Esa es la diferencia entre tener la guardia alta o no.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="4" data-tone="orange">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#deba87" font-size="11" letter-spacing="2" font-weight="600">¿CUÁNDO ES OK?</text>
+
+                  <rect x="30" y="60" width="340" height="70" rx="10" fill="#1c212c" stroke="#b7cc85" />
+                  <text x="50" y="85" fill="#b7cc85" font-size="14">✓</text>
+                  <text x="75" y="85" fill="#b7cc85" font-size="12" font-weight="600">Tu trabajo te entrega un portátil</text>
+                  <text x="75" y="105" fill="#A1AABB" font-size="11">con políticas escritas. Sabes que inspeccionan.</text>
+                  <text x="75" y="120" fill="#A1AABB" font-size="11">Es la red de ellos, el equipo es de ellos.</text>
+
+                  <rect x="30" y="145" width="340" height="70" rx="10" fill="#1c212c" stroke="#cb7c94" />
+                  <text x="50" y="170" fill="#cb7c94" font-size="14">✗</text>
+                  <text x="75" y="170" fill="#cb7c94" font-size="12" font-weight="600">El WiFi de un café te pide instalar algo</text>
+                  <text x="75" y="190" fill="#A1AABB" font-size="11">Es tu móvil. No hay política, no hay contrato.</text>
+                  <text x="75" y="205" fill="#A1AABB" font-size="11">Es un ataque o una empresa muy turbia.</text>
+
+                  <rect x="30" y="230" width="340" height="50" rx="10" fill="#1c212c" stroke="#e0c15a" />
+                  <text x="200" y="255" text-anchor="middle" fill="#e0c15a" font-size="11" font-weight="600">Diferencia clave: contexto + consentimiento</text>
+                  <text x="200" y="272" text-anchor="middle" fill="#A1AABB" font-size="10">¿Te avisaron antes? ¿Es un equipo de ellos?</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 4 · Ética y contexto</p>
+              <h2>¿Cuándo es legítimo y cuándo no?</h2>
+              <p>
+                Hay empresas que <strong>sí</strong> inspeccionan el tráfico de su red corporativa.
+                Bancos, hospitales, organismos del Estado. Lo hacen para detectar virus,
+                proteger datos sensibles, cumplir regulaciones.
+              </p>
+              <p style="margin-top: 12px;">
+                Eso es <em>legítimo</em> cuando: hay una política escrita, te avisaron antes,
+                y el equipo que estás usando es de ellos.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                En tu móvil personal, en una red pública, esto nunca es legítimo.
+              </p>
+            </div>
+          </article>
+
+          <!-- ============================================================ -->
+          <!-- MÓDULO 5 — LAS HUELLAS (tone: cyan / terminal) -->
+          <!-- ============================================================ -->
+
+          <article class="slide" data-module="5" data-tone="cyan">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#7aa89f" font-size="11" letter-spacing="2" font-weight="600">EVIDENCIA DIGITAL</text>
+
+                  <rect x="40" y="60" width="320" height="200" rx="12" fill="#1c212c" stroke="#7aa89f" />
+                  <text x="60" y="90" fill="#7aa89f" font-size="12" font-weight="600">.pcap (la grabación)</text>
+
+                  <rect x="60" y="105" width="280" height="22" rx="4" fill="#06080f" />
+                  <text x="75" y="120" fill="#A1AABB" font-family="JetBrains Mono" font-size="10">10:24:31 → instagram.com (443)</text>
+
+                  <rect x="60" y="132" width="280" height="22" rx="4" fill="#06080f" />
+                  <text x="75" y="147" fill="#A1AABB" font-family="JetBrains Mono" font-size="10">10:24:33 → google.com/search?q=...</text>
+
+                  <rect x="60" y="159" width="280" height="22" rx="4" fill="#06080f" />
+                  <text x="75" y="174" fill="#A1AABB" font-family="JetBrains Mono" font-size="10">10:24:40 → banco.com (443)</text>
+
+                  <rect x="60" y="186" width="280" height="22" rx="4" fill="#06080f" />
+                  <text x="75" y="201" fill="#A1AABB" font-family="JetBrains Mono" font-size="10">10:25:02 → tiktok.com (443)</text>
+
+                  <rect x="60" y="213" width="280" height="22" rx="4" fill="#06080f" />
+                  <text x="75" y="228" fill="#A1AABB" font-family="JetBrains Mono" font-size="10">10:25:18 → telegram.com (443)</text>
+
+                  <text x="200" y="252" text-anchor="middle" fill="#dfbd76" font-size="10">Todo eso queda grabado.</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 5 · Forense</p>
+              <h2>Todo deja huella</h2>
+              <p>
+                Un analista (los buenos también hacen esto) puede grabar todo lo que pasa por
+                un WiFi en un archivo <strong>.pcap</strong>. Después lo abre con un programa
+                llamado <strong>Wireshark</strong>.
+              </p>
+              <p style="margin-top: 12px;">
+                Incluso con HTTPS, queda registro de: a qué sitios entraste, en qué momento,
+                cuánto tiempo, en qué orden. Es como tener tu agenda del día.
+              </p>
+              <p style="margin-top: 14px; color: var(--cyan); font-weight: 600;">
+                "Nada se borra" en internet no es una metáfora. Es bastante literal.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="5" data-tone="cyan">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#7aa89f" font-size="11" letter-spacing="2" font-weight="600">LO QUE PUEDE DEDUCIR</text>
+
+                  <rect x="30" y="60" width="340" height="55" rx="8" fill="#1c212c" stroke="#313342" />
+                  <text x="50" y="82" fill="#f3f6f9" font-size="12">🕒 Te conectaste de 22:00 a 02:00</text>
+                  <text x="50" y="100" fill="#A1AABB" font-size="11">→ "Estuvo despierto hasta tarde"</text>
+
+                  <rect x="30" y="125" width="340" height="55" rx="8" fill="#1c212c" stroke="#313342" />
+                  <text x="50" y="147" fill="#f3f6f9" font-size="12">📺 Pico de tráfico hacia youtube.com</text>
+                  <text x="50" y="165" fill="#A1AABB" font-size="11">→ "Estuvo viendo vídeos"</text>
+
+                  <rect x="30" y="190" width="340" height="55" rx="8" fill="#1c212c" stroke="#313342" />
+                  <text x="50" y="212" fill="#f3f6f9" font-size="12">🎮 Conexiones a servidores de juegos</text>
+                  <text x="50" y="230" fill="#A1AABB" font-size="11">→ "Estuvo jugando online"</text>
+
+                  <text x="200" y="270" text-anchor="middle" fill="#dfbd76" font-size="11" font-style="italic">Sin abrir un solo paquete.</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 5 · El análisis</p>
+              <h2>Sin abrir un solo paquete</h2>
+              <p>
+                Aunque <strong>todo</strong> tu tráfico esté cifrado con HTTPS, alguien con la
+                grabación puede reconstruir casi tu día entero. Solo mirando dominios,
+                horarios y tamaños.
+              </p>
+              <p style="margin-top: 12px;">
+                Esto se llama <strong>análisis de metadatos</strong>. Y lo usan agencias,
+                gobiernos, empresas de publicidad, y atacantes.
+              </p>
+              <p style="margin-top: 14px; color: var(--cyan); font-weight: 600;">
+                La privacidad no es solo "que no lean tus mensajes". También es "que no sepan
+                con quién hablas y cuándo".
+              </p>
+            </div>
+          </article>
+
+          <!-- ============================================================ -->
+          <!-- MÓDULO 6 — REGLAS DE SUPERVIVENCIA (tone: blue / normal) -->
+          <!-- ============================================================ -->
+
+          <article class="slide" data-module="6" data-tone="blue">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="35" text-anchor="middle" fill="#cb7c94" font-size="11" letter-spacing="2" font-weight="600">🚩 5 BANDERAS ROJAS</text>
+
+                  <g font-size="11" fill="#f3f6f9">
+                    <text x="30" y="75">1.</text>
+                    <text x="50" y="75">Tu navegador te muestra un aviso de</text>
+                    <text x="50" y="92" fill="#cb7c94">certificado</text>
+
+                    <text x="30" y="125">2.</text>
+                    <text x="50" y="125">El "Emitido por" del cert es</text>
+                    <text x="50" y="142" fill="#cb7c94">desconocido o local</text>
+
+                    <text x="30" y="175">3.</text>
+                    <text x="50" y="175">Te piden</text>
+                    <text x="115" y="175" fill="#cb7c94">instalar un certificado</text>
+                    <text x="50" y="192">para usar la red</text>
+
+                    <text x="30" y="225">4.</text>
+                    <text x="50" y="225">Un sitio HTTPS de pronto se carga en</text>
+                    <text x="50" y="242" fill="#cb7c94">HTTP plano</text>
+
+                    <text x="30" y="275">5.</text>
+                    <text x="50" y="275">La red te pide</text>
+                    <text x="155" y="275" fill="#cb7c94">datos personales para entrar</text>
+                  </g>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 6 · Detectar redes turbias</p>
+              <h2>5 banderas rojas para vivir alerta</h2>
+              <p>
+                No hace falta ser ingeniero para detectar una red sospechosa. Estas son las
+                <strong>señales</strong> que tienes que mirar siempre.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Si te aparece una sola de estas → desconéctate y usa datos móviles. Punto.
+                No "lo intento una vez más".
+              </p>
+              <p style="margin-top: 10px; font-style: italic; color: var(--subtext);">
+                Acuérdate: tu navegador es el primer detective. Cuando te avisa, te está
+                salvando.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="6" data-tone="blue">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="40" text-anchor="middle" fill="#7fb4ca" font-size="11" letter-spacing="2" font-weight="600">REGLAS PARA WIFI PÚBLICA</text>
+
+                  <g font-size="12">
+                    <rect x="30" y="60" width="340" height="40" rx="8" fill="#1c212c" stroke="#b7cc85" />
+                    <text x="50" y="85" fill="#b7cc85">✓</text>
+                    <text x="75" y="85" fill="#f3f6f9">VPN antes de conectarte (no después)</text>
+
+                    <rect x="30" y="110" width="340" height="40" rx="8" fill="#1c212c" stroke="#b7cc85" />
+                    <text x="50" y="135" fill="#b7cc85">✓</text>
+                    <text x="75" y="135" fill="#f3f6f9">Nunca contraseñas en sitios sin 🔒</text>
+
+                    <rect x="30" y="160" width="340" height="40" rx="8" fill="#1c212c" stroke="#cb7c94" />
+                    <text x="50" y="185" fill="#cb7c94">✗</text>
+                    <text x="75" y="185" fill="#f3f6f9">Nunca instales certificados que te pidan</text>
+
+                    <rect x="30" y="210" width="340" height="40" rx="8" fill="#1c212c" stroke="#cb7c94" />
+                    <text x="50" y="235" fill="#cb7c94">✗</text>
+                    <text x="75" y="235" fill="#f3f6f9">Si dudas del WiFi → datos móviles</text>
+
+                    <rect x="30" y="260" width="340" height="22" rx="6" fill="#06080f" stroke="#e0c15a" />
+                    <text x="200" y="275" text-anchor="middle" fill="#e0c15a" font-size="11" font-weight="600">Dudar es gratis. Confiar puede salir caro.</text>
+                  </g>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 6 · Tu manual de bolsillo</p>
+              <h2>Reglas para sobrevivir en WiFi pública</h2>
+              <p>
+                No son reglas técnicas. Son <strong>hábitos</strong>. Si los sigues siempre, te
+                ahorras el 95% de los problemas sin esfuerzo.
+              </p>
+              <p style="margin-top: 12px;">
+                Cafetería, aeropuerto, hotel, centro comercial, instituto, casa de un amigo: la regla es
+                la misma. Cuando la red no es tuya, asume que alguien escucha.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Y si lo consigues, ya piensas mejor que el 90% de los usuarios.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="6" data-tone="blue">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="closeglow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#e0c15a" stop-opacity="0.4" />
+                    <stop offset="100%" stop-color="#e0c15a" stop-opacity="0" />
+                  </radialGradient>
+                </defs>
+                <rect width="400" height="300" fill="#06080f" />
+                <circle cx="200" cy="150" r="130" fill="url(#closeglow)" />
+                <text x="200" y="135" text-anchor="middle" font-size="56">🛡️</text>
+                <text x="200" y="195" text-anchor="middle" fill="#e0c15a" font-family="Source Serif 4" font-size="20" font-weight="700" font-style="italic">Duda. Verifica. Después confía.</text>
+                <text x="200" y="225" text-anchor="middle" fill="#A1AABB" font-family="Space Grotesk" font-size="11">Gracias por jugar al detective ✨</text>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 6 · Cierre</p>
+              <h2>La seguridad es una decisión</h2>
+              <p>
+                No es algo que tienes o no tienes. Es algo que <strong>decides</strong> cada vez
+                que te conectas a una red, cada vez que el navegador te avisa, cada vez que un
+                sitio te pide algo raro.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-family: 'Source Serif 4', serif; font-style: italic; font-size: 1.1rem;">
+                "Tener herramientas para detectar lo que ocurre en la red<br/>
+                es tan importante como cifrar el tráfico."
+              </p>
+              <p style="margin-top: 14px; color: var(--subtext);">
+                Llévate dos cosas: el candado 🔒 importa, y los avisos del navegador son
+                tus amigos. Con eso ya estás del lado correcto.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer class="deck-controls">
+        <button id="prev" class="ghost" type="button">← Anterior</button>
+        <button id="next" class="solid" type="button">Siguiente →</button>
+      </footer>
+    </main>
+
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
