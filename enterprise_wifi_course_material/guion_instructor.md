@@ -245,6 +245,33 @@ Verán:
 
 > "Sin descifrar nada. HTTP entrega las credenciales en texto plano. Es la razón por la que HTTP nunca debe usarse para autenticación."
 
+##### Sidebar — "Probé con Facebook/Instagram y no veo las contraseñas"
+
+Si algún alumno (o tú, en una prueba previa) intenta capturar credenciales en Facebook o Instagram, encontrará dos comportamientos distintos que son **un punto didáctico potente**:
+
+**Facebook** — el proxy lo deja pasar sin tocar. El script `start_proxy.sh` incluye `--ignore-hosts` con `.+\.facebook\.com` y `.+\.fbcdn\.net`. Razón práctica: si interceptas Facebook, las apps móviles abiertas en cualquier teléfono cercano (con certificate pinning) empiezan a fallar y el lab pierde control. El proxy hace pass-through TCP sin TLS interception → no hay POST descifrado → no hay `[CRED]`.
+
+**Instagram** — *SÍ* está siendo interceptado (no figura en `--ignore-hosts`). En el log de mitmproxy aparece el POST decifrado:
+
+```text
+[CRED] POST to https://www.instagram.com/api/graphql
+[CRED] Fields    : {'__user': ['0'], 'fb_api_req_friendly_name': ['useCDSWebLoginMutation']}
+```
+
+Pero el password **no está en claro** en los Fields. Está en el body como:
+
+```text
+enc_password=#PWD_INSTAGRAM_BROWSER:1:1715769432:AbCdEf...base64...==
+```
+
+**Eso es `client-side password encryption`.** Meta (y Google, y la banca seria) cifra el password en JavaScript ANTES de enviarlo, usando una clave pública del servidor. Aunque rompas TLS con mitmproxy, te encontrás con un sobre dentro del sobre.
+
+**Frase para clase:**
+
+> "Pensaban que con la CA instalada todo HTTPS era texto plano para el operador, ¿no? Miren: la POST de login pasó por nuestro proxy. Lo descifró. Pero el password seguía cifrado por una SEGUNDA capa con una clave pública del servidor. Esto se llama envelope encryption. Lo hacen Meta, Google y todos los bancos serios. La lección: TLS NO es la única defensa. Los servicios críticos ASUMEN que el TLS puede romperse — porque puede romperse, como acabamos de demostrar — y agregan capas encima. Defense-in-depth no es un buzzword: es lo que está pasando ahora mismo en cada login que hacen al día."
+
+Por eso el demo "oficial" usa `http://testasp.vulnweb.com`: HTTP plano, formulario clásico, sin TLS, sin client-side crypto. Es el contraste perfecto para mostrar primero "así de fácil sin protección" y después, opcionalmente, "y así de bien lo hace una empresa que se toma esto en serio".
+
 ```bash
 sudo ./mitm-control.sh creds off
 ```
