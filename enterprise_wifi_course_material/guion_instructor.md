@@ -198,6 +198,34 @@ Client TLS handshake failed. The client does not trust the proxy's certificate f
 
 #### Parte B — Detectar el proxy desde el dispositivo (35–42 min)
 
+**B.1 — Desde el navegador (método gráfico, para todos)**
+
+Con `https://example.com` ya abierto (tras aceptar el aviso):
+
+1. Click en el **candado** (o triángulo rojo) de la barra de URL.
+2. *"Conexión no segura"* → *"Detalles del certificado"*.
+3. Mirar el campo **Emitido por** → aparecerá: `mitmproxy`.
+
+En Chrome también: **F12 → pestaña Security** muestra la cadena de certs visualmente con un botón *View certificate*.
+
+**Demostración HSTS preload (el momento dramático del bloque):**
+
+Pedir que naveguen a un sitio HSTS-preloaded:
+
+- `https://github.com`
+- `https://google.com`
+- `https://facebook.com`
+
+El navegador **REFUSES** conectar. *No aparece el botón "Continuar de todos modos"*.
+
+> "Mirad la diferencia. En `example.com` el navegador os dejó decidir. En `github.com` ni siquiera os da la opción. Esos dominios están en la lista **HSTS preload** del navegador — hardcoded en el código del navegador como 'siempre TLS válido, sin excepciones'. Es la única defensa real contra un MITM con CA instalada: el cliente decide *a priori* que no acepta excepciones para ciertos dominios."
+
+**Opcional — comparar con badssl.com:**
+
+`https://untrusted-root.badssl.com` enseña exactamente el mismo tipo de aviso que produce mitmproxy. Útil para mostrar que el patrón del warning no es exclusivo del lab.
+
+**B.2 — Desde la terminal (método técnico, complementario)**
+
 ```bash
 # En el dispositivo del alumno (Linux/macOS):
 openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \
