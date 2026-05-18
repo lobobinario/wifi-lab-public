@@ -309,8 +309,17 @@ enable_spoof() {
     echo "[+] Stopped lab-webserver (port 80 now free)"
   fi
 
-  # dnsmasq: address=/domain/IP matches the domain and all subdomains
-  echo "address=/${SPOOF_DOMAIN}/${LAB_GATEWAY}" > "${DNSMASQ_CONF}"
+  # dnsmasq: address=/domain/IP matches the domain and all subdomains.
+  # Two records needed:
+  #   - A   → LAB_GATEWAY: redirects IPv4 traffic to nginx on the Pi.
+  #   - AAAA → :: (unroutable): forces clients with IPv6 connectivity (Linux,
+  #            macOS, modern Firefox/Chrome) to fall back to A. Without this
+  #            line dnsmasq forwards AAAA queries upstream, the client gets the
+  #            real IPv6 address of the target, and the spoof is bypassed.
+  {
+    echo "address=/${SPOOF_DOMAIN}/${LAB_GATEWAY}"
+    echo "address=/${SPOOF_DOMAIN}/::"
+  } > "${DNSMASQ_CONF}"
   systemctl restart dnsmasq
 
   systemctl start nginx
