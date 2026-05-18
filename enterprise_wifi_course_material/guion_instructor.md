@@ -308,7 +308,9 @@ sudo ./mitm-control.sh creds off
 
 ### BLOQUE 3 — DNS Spoofing: el Google falso (50–65 min)
 
-**Objetivo:** Demostrar que el operador del AP controla el DNS y puede redirigir cualquier dominio a una página local, sin que el cliente cambie de red ni note nada extraño en la URL.
+**Objetivo:** Demostrar que el operador del AP controla el DNS y puede redirigir cualquier dominio a una página local, sin que el cliente cambie de red ni note nada extraño en la URL. Y mostrar — con el Bloque 2 ya hecho — que el ataque combinado (DNS spoof + CA confiable) rompe HTTPS sin warning.
+
+> **Prerrequisito**: `mitm-control.sh enable` debe haberse corrido al menos una vez en la Pi (genera `/root/.mitmproxy/mitmproxy-ca.pem`). `dns-spoof.sh enable` detecta esa CA y firma automáticamente un cert para `*.elmundo.es`. Si la CA no existe todavía, el HTTP hijack funciona igual; el HTTPS hijack se activa automáticamente la próxima vez que se ejecute `enable` después de bootstrapear mitmproxy.
 
 **El instructor activa el ejercicio:**
 
@@ -316,11 +318,19 @@ sudo ./mitm-control.sh creds off
 sudo ./dns-spoof.sh enable
 ```
 
-Esto para `lab_webserver` si estuviera activo, lanza nginx con la página falsa de El Mundo y añade la entrada de spoof en dnsmasq.
+Esto, en una sola orden:
+
+1. Para `lab_webserver` si estuviera activo
+2. Lanza nginx con la página falsa de El Mundo en puerto 80 (HTTP hijack)
+3. Genera (o reusa) un cert `*.elmundo.es` firmado por la CA de mitmproxy
+4. Configura nginx para servir ese cert vía SNI en puerto 443 (HTTPS hijack)
+5. Añade la entrada de spoof en dnsmasq (A → 192.168.50.1, AAAA → :: para forzar fallback IPv4)
+
+El comando termina mostrando el status con tres líneas verdes: `dnsmasq`, `nginx HTTP`, y `https hijack`. Si la línea HTTPS aparece amarilla con `no mitmproxy-signed cert`, el prerrequisito anterior no se cumplió.
 
 > "Ahora abrid una ventana de incógnito y entrad a elmundo.es desde el navegador."
 
-**¿Por qué incógnito?** Los navegadores cachean redirecciones HTTP→HTTPS de sesiones anteriores. La ventana de incógnito parte de un estado limpio y evita ese problema.
+**¿Por qué incógnito?** Los navegadores cachean redirecciones HTTP→HTTPS de sesiones anteriores, y también la lista HSTS dinámica. La ventana de incógnito parte de un estado limpio y evita esos problemas.
 
 #### Resolver el problema de caché DNS
 
@@ -346,27 +356,71 @@ dig @192.168.50.1 elmundo.es +short
 # Debe devolver: 192.168.50.1
 ```
 
+**Verificar que nginx presenta el cert firmado por mitmproxy:**
+
+```bash
+openssl s_client -connect 192.168.50.1:443 -servername www.elmundo.es </dev/null 2>/dev/null \
+  | openssl x509 -noout -issuer -subject
+# Debe mostrar:
+# issuer=CN=mitmproxy, O=mitmproxy
+# subject=CN=*.elmundo.es, O=Lab MITM, C=ES
+```
+
 #### La demo
 
-Cuando los alumnos abran `elmundo.es` en incógnito verán:
+Pedir DOS pruebas, en orden:
 
-- La página con el aspecto de El Mundo (logo, secciones, noticias)
-- Un **banner rojo** en la parte superior: *"DEMO — DNS SPOOFING ACTIVO"*
-- Al hacer clic en cualquier noticia, un modal muestra la URL interceptada
+**1. HTTP** — `http://elmundo.es` en incógnito:
+
+- Página con aspecto de El Mundo (logo, secciones, noticias)
+- **Banner rojo** arriba: *"DEMO — DNS SPOOFING ACTIVO"*
+- Click en una noticia → modal con la URL interceptada
+- URL en barra: `http://elmundo.es`
 
 > "¿Qué veis en la barra de URL? `elmundo.es`. Sin embargo, nunca habéis salido de esta red. El operador del AP controla lo que veis."
 
-**Discusión:**
+**2. HTTPS** — `https://www.elmundo.es` en incógnito (mismo browser que tiene la CA de mitmproxy del Bloque 2):
 
-- ¿Qué información se podría capturar si la página falsa tuviera un formulario de login?
-- ¿Cómo detectaríais que no estáis en el El Mundo real? (IP de destino, DNS autoritativo)
-- ¿Por qué no funciona este ataque con `google.com`? (HSTS preloading: el navegador fuerza HTTPS de forma incondicional)
+- Misma página falsa cargando vía HTTPS
+- **Candado verde** ✓
+- Sin warning ✓
+- URL en barra: `https://www.elmundo.es` ✓
+
+> "Acaban de ver el endgame del operador hostil de red. DNS spoof + cert firmado por una CA que tu sistema confía = hijack TOTAL e INVISIBLE. Sin warnings, sin candado roto, sin nada que les sugiera que están mirando una página falsa."
+
+#### Por qué funciona — el concepto clave que confunde a casi todos
+
+Muchos alumnos asumen "tengo la CA instalada, todo HTTPS pasa transparente". **Es falso.** La CA solo valida certs FIRMADOS POR ella. Si el server presenta un cert firmado por otra CA o self-signed, instalar la mitmproxy CA no cambia nada — el browser lo rechaza igual.
+
+Lo que hizo `dns-spoof.sh enable` automáticamente es:
+
+1. Tomar la **clave privada** de la CA de mitmproxy (`/root/.mitmproxy/mitmproxy-ca.pem`).
+2. Generar un cert `*.elmundo.es` y firmarlo con esa clave.
+3. Configurar nginx para presentarlo vía SNI.
+
+Ese cert tiene una cadena válida hacia la CA que el browser ya confía → no hay warning. Es exactamente lo que hace un proxy MITM corporativo legítimo (Zscaler, BlueCoat) o un atacante con acceso al trust store del cliente.
+
+#### Discusión
+
+- ¿Qué información se podría capturar si la página falsa tuviera un formulario de login? *(spoiler: TODO, incluido HTTPS — el operador puede ver el body de POST sin warning porque ELLE es el servidor)*
+- ¿Cómo detectaríais que no estáis en el El Mundo real? *(IP de destino, certificate transparency check, fingerprinting del cert)*
+- ¿Por qué no funciona este ataque con `google.com` o `github.com`? *(**HSTS preload** — el navegador hardcodea esos dominios como 'siempre TLS válido' y rechaza CUALQUIER cert que no esté en su CT logs públicos)*
+
+**Las tres capas de defensa (en orden de fuerza), para cerrar el bloque:**
+
+1. **HSTS preload** — el navegador hardcodea ciertos dominios. Ya lo vimos en el Bloque 2 con github.com. Para esos dominios NO hay forma de hacer este hijack, ni con CA instalada.
+2. **Certificate pinning** (apps móviles) — la app sabe exactamente qué cert esperar, ignora el almacén del sistema. WhatsApp, banca, Instagram en móvil son inmunes.
+3. **Certificate Transparency** — todos los certs de CAs públicas se publican en logs auditables. Pero **NO aplica acá**: la CA de mitmproxy es privada, no está en CT. Es defensa contra CAs públicas comprometidas, no contra atacantes con control del trust store.
+
+> "Conclusión brutal: SI alguien convence a tu sistema de confiar en su CA — vía MDM corporativo, malware, o tú haciendo click sin pensar — tu HTTPS no vale nada para los dominios que no tengan HSTS preload o pinning. Esa es la importancia del Bloque 2 que ya hicimos: el momento en que aceptás 'continuar de todos modos' o instalás un cert es el momento en que perdés todo."
 
 **Al terminar:**
 
 ```bash
 sudo ./dns-spoof.sh disable
 ```
+
+Los archivos del cert (`/etc/nginx/ssl/elmundo-mitm.crt` y `.key`) **persisten** entre disable/enable. La próxima vez que actives el spoof, el cert se reusa automáticamente. Para borrar el cert manualmente: `sudo rm /etc/nginx/ssl/elmundo-mitm.*`.
 
 ---
 
