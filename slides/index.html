@@ -23,7 +23,7 @@
         </div>
         <div class="status">
           <span class="mode-badge" id="mode-badge">NORMAL</span>
-          <span id="counter" class="hint">01 / 21</span>
+          <span id="counter" class="hint">01 / 24</span>
         </div>
       </header>
 
@@ -46,19 +46,19 @@
             <div class="rail-dots" id="dots-2"></div>
           </div>
           <div class="rail-module" data-module="3">
-            <button class="rail-title" data-first="9">3 · El cartero falso (MITM)</button>
+            <button class="rail-title" data-first="9">3 · El cartero falso (MITM + DNS)</button>
             <div class="rail-dots" id="dots-3"></div>
           </div>
           <div class="rail-module" data-module="4">
-            <button class="rail-title" data-first="13">4 · Cuando te fías del espía</button>
+            <button class="rail-title" data-first="15">4 · Cuando te fías del espía</button>
             <div class="rail-dots" id="dots-4"></div>
           </div>
           <div class="rail-module" data-module="5">
-            <button class="rail-title" data-first="16">5 · Las huellas que dejas</button>
+            <button class="rail-title" data-first="18">5 · Las huellas que dejas</button>
             <div class="rail-dots" id="dots-5"></div>
           </div>
           <div class="rail-module" data-module="6">
-            <button class="rail-title" data-first="18">6 · Reglas de supervivencia</button>
+            <button class="rail-title" data-first="20">6 · Reglas de supervivencia</button>
             <div class="rail-dots" id="dots-6"></div>
           </div>
         </aside>
@@ -647,6 +647,121 @@
             </div>
           </article>
 
+          <article class="slide" data-module="3" data-tone="magenta">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="35" text-anchor="middle" fill="#ff8dd7" font-size="11" letter-spacing="2" font-weight="600">EL GPS FALSO</text>
+
+                  <rect x="20" y="60" width="100" height="50" rx="8" fill="#1c212c" stroke="#7fb4ca" />
+                  <text x="70" y="85" text-anchor="middle" fill="#f3f6f9" font-size="11">📱 Tú</text>
+                  <text x="70" y="100" text-anchor="middle" fill="#A1AABB" font-size="9">"banco.com?"</text>
+
+                  <line x1="120" y1="85" x2="160" y2="85" stroke="#ff8dd7" stroke-width="2" stroke-dasharray="3,3" />
+                  <polygon points="155,80 165,85 155,90" fill="#ff8dd7" />
+
+                  <rect x="160" y="60" width="100" height="50" rx="8" fill="#2a3142" stroke="#ff8dd7" stroke-width="2" />
+                  <text x="210" y="80" text-anchor="middle" fill="#ff8dd7" font-size="11">📕 DNS espiado</text>
+                  <text x="210" y="98" text-anchor="middle" fill="#A1AABB" font-size="9">(la libreta miente)</text>
+
+                  <line x1="260" y1="85" x2="300" y2="85" stroke="#cb7c94" stroke-width="2" />
+                  <polygon points="295,80 305,85 295,90" fill="#cb7c94" />
+
+                  <rect x="300" y="60" width="80" height="50" rx="8" fill="#1c212c" stroke="#cb7c94" />
+                  <text x="340" y="80" text-anchor="middle" fill="#cb7c94" font-size="11">🎭 Web falsa</text>
+                  <text x="340" y="98" text-anchor="middle" fill="#A1AABB" font-size="9">(no el banco)</text>
+
+                  <rect x="40" y="150" width="320" height="120" rx="10" fill="#1c212c" stroke="#deba87" />
+                  <text x="200" y="175" text-anchor="middle" fill="#deba87" font-size="12" font-weight="600">¿Qué es el DNS?</text>
+                  <text x="200" y="200" text-anchor="middle" fill="#A1AABB" font-size="11">La libreta de direcciones de internet.</text>
+                  <text x="200" y="218" text-anchor="middle" fill="#A1AABB" font-size="11">Cuando escribes "banco.com" alguien tiene</text>
+                  <text x="200" y="236" text-anchor="middle" fill="#A1AABB" font-size="11">que decirte la dirección real.</text>
+                  <text x="200" y="258" text-anchor="middle" fill="#ff8dd7" font-size="11" font-weight="600">Quien controla el WiFi escribe esa libreta.</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 3 · DNS Spoofing</p>
+              <h2>El otro truco: el GPS falso</h2>
+              <p>
+                Hay una forma más sencilla de meterte en la página equivocada: <strong>mentir
+                con el DNS</strong>. El DNS es la libreta de direcciones de internet — traduce
+                "banco.com" a la dirección IP del servidor real.
+              </p>
+              <p style="margin-top: 12px;">
+                El WiFi al que te conectas suele ser quien te entrega esa libreta. Si miente,
+                tu móvil te lleva a una <em>copia falsa</em> del banco que está en la propia red.
+                La URL en el navegador sigue diciendo "banco.com" — pero no es el banco.
+              </p>
+              <p style="margin-top: 14px; color: var(--magenta); font-weight: 600;">
+                No hace falta interceptar la conversación. Basta con desviarla.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="3" data-tone="magenta">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="35" text-anchor="middle" fill="#ff8dd7" font-size="11" letter-spacing="2" font-weight="600">EL COMBO LETAL</text>
+
+                  <rect x="20" y="55" width="170" height="215" rx="12" fill="#1c212c" stroke="#deba87" />
+                  <text x="105" y="80" text-anchor="middle" fill="#deba87" font-size="12" font-weight="700">SOLO DNS FALSO</text>
+
+                  <text x="35" y="115" fill="#A1AABB" font-size="10">DNS:</text>
+                  <text x="60" y="115" fill="#cb7c94" font-size="11">→ web falsa</text>
+
+                  <text x="35" y="140" fill="#A1AABB" font-size="10">Certificado:</text>
+                  <text x="60" y="155" fill="#cb7c94" font-size="11">→ falso, sin firma</text>
+
+                  <text x="35" y="180" fill="#A1AABB" font-size="10">Navegador:</text>
+                  <text x="60" y="200" fill="#b7cc85" font-size="12">⚠️ AVISO</text>
+                  <text x="60" y="215" fill="#A1AABB" font-size="10">"no es privada"</text>
+
+                  <text x="105" y="250" text-anchor="middle" fill="#b7cc85" font-size="11" font-weight="600">Te frena.</text>
+
+                  <rect x="210" y="55" width="170" height="215" rx="12" fill="#1c212c" stroke="#cb7c94" stroke-width="2" />
+                  <text x="295" y="80" text-anchor="middle" fill="#cb7c94" font-size="12" font-weight="700">DNS + CA INSTALADA</text>
+
+                  <text x="225" y="115" fill="#A1AABB" font-size="10">DNS:</text>
+                  <text x="250" y="115" fill="#cb7c94" font-size="11">→ web falsa</text>
+
+                  <text x="225" y="140" fill="#A1AABB" font-size="10">Certificado:</text>
+                  <text x="250" y="155" fill="#cb7c94" font-size="11">→ firmado por TU CA</text>
+
+                  <text x="225" y="180" fill="#A1AABB" font-size="10">Navegador:</text>
+                  <text x="250" y="200" fill="#cb7c94" font-size="12">🔒 verde</text>
+                  <text x="250" y="215" fill="#A1AABB" font-size="10">URL correcta</text>
+
+                  <text x="295" y="250" text-anchor="middle" fill="#cb7c94" font-size="11" font-weight="600">No te enteras.</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 3 · La combinación más peligrosa</p>
+              <h2>DNS falso + CA instalada = hijack invisible</h2>
+              <p>
+                <strong>Por separado, ninguno engaña del todo:</strong>
+              </p>
+              <p style="margin-top: 8px;">
+                · <strong>Solo DNS falso</strong>: te lleva a una copia, pero el certificado
+                no encaja → el navegador te avisa.<br/>
+                · <strong>Solo CA instalada</strong>: el atacante puede firmar, pero no
+                te desvía a su web.
+              </p>
+              <p style="margin-top: 12px;">
+                <strong>Juntos son letales</strong>: el DNS te lleva a la copia y la CA hace que
+                el certificado parezca legítimo. Candado verde. URL correcta. Página falsa.
+              </p>
+              <p style="margin-top: 14px; color: var(--magenta); font-weight: 600;">
+                El instante en que aceptas instalar una CA ajena es el instante en que pierdes
+                toda visibilidad. Para SIEMPRE.
+              </p>
+            </div>
+          </article>
+
           <!-- ============================================================ -->
           <!-- MÓDULO 4 — CUANDO TE FÍAS DEL ESPÍA (tone: orange / replace) -->
           <!-- ============================================================ -->
@@ -685,7 +800,8 @@
               </p>
               <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
                 Es como darle al cartero falso un sello oficial de Correos. A partir
-                de ahí puede firmar cualquier cosa y la vas a aceptar.
+                de ahí puede firmar cualquier cosa y la vas a aceptar — combinado con un DNS
+                falso, te enseña webs completas sin que te enteres.
               </p>
             </div>
           </article>
@@ -935,6 +1051,53 @@
               <p style="margin-top: 10px; font-style: italic; color: var(--subtext);">
                 Acuérdate: tu navegador es el primer detective. Cuando te avisa, te está
                 salvando.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="6" data-tone="blue">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <text x="200" y="35" text-anchor="middle" fill="#b7cc85" font-size="11" letter-spacing="2" font-weight="600">DEFENSAS QUE YA TIENES</text>
+
+                  <rect x="30" y="55" width="340" height="80" rx="10" fill="#1c212c" stroke="#b7cc85" />
+                  <text x="50" y="80" fill="#b7cc85" font-size="13" font-weight="700">🛡️ HSTS preload</text>
+                  <text x="50" y="100" fill="#A1AABB" font-size="11">Tu navegador trae hardcodeada una lista</text>
+                  <text x="50" y="115" fill="#A1AABB" font-size="11">de ~150.000 dominios "blindados"</text>
+                  <text x="50" y="130" fill="#f3f6f9" font-size="11">→ google · github · facebook · banca…</text>
+
+                  <rect x="30" y="145" width="340" height="60" rx="10" fill="#1c212c" stroke="#cb7c94" />
+                  <text x="200" y="170" text-anchor="middle" fill="#cb7c94" font-size="12" font-weight="600">Para esos dominios:</text>
+                  <text x="200" y="190" text-anchor="middle" fill="#f3f6f9" font-size="11">si el certificado NO es perfecto → REFUSES</text>
+
+                  <rect x="30" y="215" width="340" height="55" rx="10" fill="#1c212c" stroke="#deba87" />
+                  <text x="200" y="240" text-anchor="middle" fill="#deba87" font-size="12" font-weight="600">Sin botón "Continuar de todos modos"</text>
+                  <text x="200" y="258" text-anchor="middle" fill="#A1AABB" font-size="10">Ni siquiera con la CA del atacante instalada.</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 6 · Buenas noticias</p>
+              <h2>Tu navegador tiene escudos automáticos</h2>
+              <p>
+                No estás solo. Tu navegador trae <strong>una lista hardcodeada</strong> de unos
+                150.000 dominios que SIEMPRE deben usar TLS válido — sin excepciones.
+              </p>
+              <p style="margin-top: 12px;">
+                Para esos dominios (Google, GitHub, Facebook, los grandes bancos…), si el
+                certificado tiene la mínima rareza, el navegador <strong>rechaza</strong> la
+                conexión y NO te muestra el botón "Continuar de todos modos".
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Es la única defensa que funciona aunque te hayas tragado la CA del atacante.
+                Por eso es importante: hay sitios que <em>no</em> se pueden falsificar contra ti.
+              </p>
+              <p style="margin-top: 10px; font-style: italic; color: var(--subtext); font-size: 0.9em;">
+                Bonus: las apps móviles (WhatsApp, banca, Instagram) hacen algo parecido llamado
+                "certificate pinning". Por eso suelen fallar en silencio en redes hostiles
+                en lugar de mostrarte una página falsa.
               </p>
             </div>
           </article>
