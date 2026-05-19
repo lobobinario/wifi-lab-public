@@ -61,6 +61,7 @@ PROXY_CREDENTIAL_LOG="${PROXY_CREDENTIAL_LOG:-0}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROXY_MODIFY_SCRIPT="${PROXY_MODIFY_SCRIPT:-${SCRIPT_DIR}/mitm_demo_modify.py}"
 PROXY_CREDENTIAL_SCRIPT="${PROXY_CREDENTIAL_SCRIPT:-${SCRIPT_DIR}/mitm_credential_logger.py}"
+PROXY_INJECT_SCRIPT="${PROXY_INJECT_SCRIPT:-${SCRIPT_DIR}/mitm_inject_banner.py}"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "[!] Run as root: sudo ./enterprise_lab.sh"
@@ -324,6 +325,14 @@ if [[ "${PROXY_CREDENTIAL_LOG}" == "1" ]]; then
     echo "[!] PROXY_CREDENTIAL_LOG=1 but script not found: ${PROXY_CREDENTIAL_SCRIPT}"
     exit 1
   fi
+fi
+
+# Always deploy the injection addon to /usr/local/bin so that
+# `mitm-control.sh inject on` can toggle it at runtime without re-bootstrap.
+# The addon stays OFF by default; activation is opt-in via mitm-control.
+if [[ -f "${PROXY_INJECT_SCRIPT}" ]]; then
+  cp "${PROXY_INJECT_SCRIPT}" /usr/local/bin/mitm_inject_banner.py
+  echo "[i] Injection addon deployed (off by default): /usr/local/bin/mitm_inject_banner.py"
 fi
 
 cat > /usr/local/bin/start_proxy.sh <<EOF
