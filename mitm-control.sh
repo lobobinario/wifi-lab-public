@@ -9,12 +9,14 @@ set -euo pipefail
 #   sudo ./mitm-control.sh disable            # disable MITM (traffic passes freely)
 #   sudo ./mitm-control.sh modify    on|off   # content modification addon
 #   sudo ./mitm-control.sh creds     on|off   # credential logging addon
+#   sudo ./mitm-control.sh inject    on|off   # HTML banner injection + cookie hijack
 #   sudo ./mitm-control.sh webserver on|off   # start/stop lab_webserver (stops nginx first)
 
 SERVICE="enterprise.service"
 PROXY_LAUNCHER="/usr/local/bin/start_proxy.sh"
 ADDON_MODIFY="/usr/local/bin/mitm_demo_modify.py"
 ADDON_CREDS="/usr/local/bin/mitm_credential_logger.py"
+ADDON_INJECT="/usr/local/bin/mitm_inject_banner.py"
 
 AP_IFACE="${AP_IFACE:-wlan0}"
 LAB_GATEWAY="${LAB_GATEWAY:-192.168.50.1}"
@@ -88,6 +90,9 @@ print_status() {
   addon_active "${ADDON_CREDS}" \
     && echo -e "${GREEN}[ON] ${NC} creds  — credential logger" \
     || echo -e "${YELLOW}[OFF]${NC} creds  — credential logger"
+  addon_active "${ADDON_INJECT}" \
+    && echo -e "${GREEN}[ON] ${NC} inject — HTML banner + cookie hijack" \
+    || echo -e "${YELLOW}[OFF]${NC} inject — HTML banner + cookie hijack"
 
   echo
   echo -e "${CYAN}[+] Lab Webserver${NC}"
@@ -170,6 +175,12 @@ case "${CMD}" in
     set_addon "${ADDON_CREDS}" "${STATE}"
     restart_service
     ;;
+  inject)
+    require_launcher
+    [[ "${STATE}" == "on" || "${STATE}" == "off" ]] || { echo "Usage: $0 inject on|off"; exit 1; }
+    set_addon "${ADDON_INJECT}" "${STATE}"
+    restart_service
+    ;;
   webserver)
     [[ "${STATE}" == "on" || "${STATE}" == "off" ]] || { echo "Usage: $0 webserver on|off"; exit 1; }
     if [[ "${STATE}" == "on" ]]; then
@@ -192,6 +203,7 @@ case "${CMD}" in
     echo "  disable             Disable MITM interception (traffic passes freely)"
     echo "  modify    on|off    Toggle content modification addon (Gooogle/B1ng)"
     echo "  creds     on|off    Toggle credential logging addon"
+    echo "  inject    on|off    Toggle HTML banner injection + session cookie capture"
     echo "  webserver on|off    Start/stop lab_webserver on port 80 (stops nginx first)"
     exit 1
     ;;

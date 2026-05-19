@@ -54,11 +54,11 @@
             <div class="rail-dots" id="dots-4"></div>
           </div>
           <div class="rail-module" data-module="5">
-            <button class="rail-title" data-first="18">5 · Las huellas que dejas</button>
+            <button class="rail-title" data-first="20">5 · Las huellas que dejas</button>
             <div class="rail-dots" id="dots-5"></div>
           </div>
           <div class="rail-module" data-module="6">
-            <button class="rail-title" data-first="20">6 · Reglas de supervivencia</button>
+            <button class="rail-title" data-first="22">6 · Reglas de supervivencia</button>
             <div class="rail-dots" id="dots-6"></div>
           </div>
         </aside>
@@ -904,6 +904,109 @@
               </p>
               <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
                 En tu móvil personal, en una red pública, esto nunca es legítimo.
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="4" data-tone="orange">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk">
+                  <!-- Browser chrome -->
+                  <rect x="40" y="40" width="320" height="220" rx="8" fill="#1c212c" stroke="#3a4252" />
+                  <rect x="40" y="40" width="320" height="28" rx="8" fill="#262d3a" />
+                  <circle cx="55" cy="54" r="4" fill="#cb7c94" />
+                  <circle cx="68" cy="54" r="4" fill="#deba87" />
+                  <circle cx="81" cy="54" r="4" fill="#b7cc85" />
+                  <rect x="100" y="46" width="240" height="16" rx="3" fill="#06080f" />
+                  <text x="108" y="58" fill="#b7cc85" font-size="11">🔒</text>
+                  <text x="125" y="58" fill="#A1AABB" font-size="10" font-family="monospace">https://example.com</text>
+
+                  <!-- The injected banner (pill, centered) -->
+                  <rect x="115" y="80" width="170" height="22" rx="5" fill="#cc0000" />
+                  <text x="200" y="95" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">⚠ MODIFICADO por CorpNet-Enterprise</text>
+
+                  <!-- Fake page content underneath -->
+                  <text x="60" y="140" fill="#f3f6f9" font-size="13" font-weight="700">Example Domain</text>
+                  <text x="60" y="158" fill="#A1AABB" font-size="9">This domain is for use in illustrative examples.</text>
+                  <line x1="60" y1="170" x2="340" y2="170" stroke="#3a4252" />
+                  <rect x="60" y="180" width="280" height="6" rx="2" fill="#3a4252" />
+                  <rect x="60" y="192" width="240" height="6" rx="2" fill="#3a4252" />
+                  <rect x="60" y="204" width="260" height="6" rx="2" fill="#3a4252" />
+                  <rect x="60" y="216" width="180" height="6" rx="2" fill="#3a4252" />
+
+                  <text x="200" y="245" text-anchor="middle" fill="#deba87" font-size="9" letter-spacing="1">CANDADO VERDE · CERTIFICADO VÁLIDO · CONTENIDO ALTERADO</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 4 · El AP te habla</p>
+              <h2>"Hola, soy tu WiFi — y modifico lo que lees"</h2>
+              <p>
+                Visitas cualquier web HTTPS. Candado verde, certificado válido. Y arriba
+                del todo aparece un banner rojo que no estaba en la web original. El
+                operador lo <strong>inyectó</strong> en tránsito, sin tocar el cifrado,
+                porque tu navegador confía en su CA.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                Si en vez de un banner rojo hubiera inyectado un script invisible que
+                lee tus tokens, ¿lo habrías visto?
+              </p>
+            </div>
+          </article>
+
+          <article class="slide" data-module="4" data-tone="orange">
+            <figure class="slide-figure">
+              <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="300" fill="#06080f" />
+                <g font-family="Space Grotesk" font-size="10">
+                  <text x="200" y="30" text-anchor="middle" fill="#deba87" font-size="11" letter-spacing="2" font-weight="600">LA COOKIE ES LA SESIÓN</text>
+
+                  <!-- Victim browser -->
+                  <rect x="20" y="55" width="160" height="100" rx="8" fill="#1c212c" stroke="#b7cc85" />
+                  <text x="100" y="75" text-anchor="middle" fill="#b7cc85" font-size="11" font-weight="700">TÚ</text>
+                  <text x="100" y="92" text-anchor="middle" fill="#A1AABB" font-size="9">Te logueas normal</text>
+                  <text x="100" y="115" text-anchor="middle" fill="#f3f6f9" font-size="9" font-family="monospace">Welcome, alice</text>
+                  <rect x="40" y="125" width="120" height="20" rx="3" fill="#262d3a" />
+                  <text x="100" y="138" text-anchor="middle" fill="#deba87" font-size="8" font-family="monospace">sessionid=eyJ1...</text>
+
+                  <!-- Arrow with cookie -->
+                  <line x1="180" y1="105" x2="220" y2="105" stroke="#cb7c94" stroke-width="2" stroke-dasharray="4,2" />
+                  <polygon points="218,100 228,105 218,110" fill="#cb7c94" />
+                  <text x="200" y="95" text-anchor="middle" fill="#cb7c94" font-size="8">🍪 robada</text>
+
+                  <!-- Attacker browser -->
+                  <rect x="220" y="55" width="160" height="100" rx="8" fill="#1c212c" stroke="#cb7c94" stroke-width="2" />
+                  <text x="300" y="75" text-anchor="middle" fill="#cb7c94" font-size="11" font-weight="700">EL OPERADOR</text>
+                  <text x="300" y="92" text-anchor="middle" fill="#A1AABB" font-size="9">Pega la cookie</text>
+                  <text x="300" y="115" text-anchor="middle" fill="#f3f6f9" font-size="9" font-family="monospace">Welcome, alice</text>
+                  <rect x="240" y="125" width="120" height="20" rx="3" fill="#262d3a" />
+                  <text x="300" y="138" text-anchor="middle" fill="#cb7c94" font-size="8" font-family="monospace">sin password</text>
+
+                  <!-- Bottom message -->
+                  <rect x="30" y="180" width="340" height="90" rx="10" fill="#1c212c" stroke="#deba87" />
+                  <text x="200" y="205" text-anchor="middle" fill="#deba87" font-size="11" font-weight="700">No necesito tu contraseña</text>
+                  <text x="200" y="225" text-anchor="middle" fill="#f3f6f9" font-size="10">Solo tu cookie de sesión</text>
+                  <text x="200" y="245" text-anchor="middle" fill="#A1AABB" font-size="9">2FA no te protege — ya estoy dentro</text>
+                  <text x="200" y="262" text-anchor="middle" fill="#cb7c94" font-size="9" font-weight="600">Y en tu pantalla NO ves nada raro</text>
+                </g>
+              </svg>
+            </figure>
+            <div class="slide-content">
+              <p class="slide-kicker">Bloque 4 · El robo silencioso</p>
+              <h2>Session hijack: dentro sin password</h2>
+              <p>
+                El banner era lo VISIBLE. Mientras lo mirabas, el mismo addon estaba
+                copiando las <strong>cookies de sesión</strong> que tu navegador
+                enviaba en cada petición.
+              </p>
+              <p style="margin-top: 12px;">
+                El profe abre un navegador limpio, pega tu cookie en la consola, recarga,
+                y aparece <em>logueado como tú</em>. Sin tu contraseña, sin tu 2FA.
+              </p>
+              <p style="margin-top: 14px; color: var(--accent); font-weight: 600;">
+                La única defensa real: no aceptes nunca la CA del operador.
               </p>
             </div>
           </article>

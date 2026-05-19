@@ -39,8 +39,11 @@ Verificar manualmente:
 Inicio de clase   → MITM OFF, webserver OFF, nginx OFF  (estado base)
 Bloque 1          → Conexión libre, sniffing HTTP, metadatos HTTPS
 Bloque 2          → mitm-control.sh enable   (aviso de certificado, detección de proxy)
-Bloque 3          → dns-spoof.sh enable      (DNS spoof, Google falso)
-Bloque 4 (opt.)  → mitm-control.sh webserver on  (HTTP vs HTTPS, lab_webserver)
+Bloque 3          → dns-spoof.sh enable      (DNS spoof, Google falso, HTTPS hijack)
+Bloque 4          → mitm-control.sh inject on  (el AP te habla + robo de sesión)
+Bloque 5          → análisis de captura PCAP
+Bloque 6          → debate y cierre
+Apéndice (opt.)   → mitm-control.sh webserver on  (HTTP vs HTTPS, lab_webserver)
 Fin de clase      → mitm-control.sh disable && dns-spoof.sh disable
 ```
 
@@ -56,7 +59,8 @@ sudo ./mitm-control.sh enable           # activa interceptación (iptables + mit
 sudo ./mitm-control.sh disable          # desactiva interceptación
 sudo ./mitm-control.sh modify  on|off   # addon: modificación de contenido (Gooogle/B1ng)
 sudo ./mitm-control.sh creds   on|off   # addon: captura de credenciales
-sudo ./mitm-control.sh webserver on|off # lab_webserver en puerto 80 (para el bloque 4)
+sudo ./mitm-control.sh inject  on|off   # addon: inyección de banner HTML + robo de cookies de sesión
+sudo ./mitm-control.sh webserver on|off # lab_webserver en puerto 80 (apéndice opcional)
 ```
 
 ### Control del DNS spoofing
@@ -83,6 +87,9 @@ sudo journalctl -u enterprise.service -f --no-pager
 
 # Solo credenciales capturadas
 sudo journalctl -u enterprise.service -f --no-pager | grep -A3 "\[CRED\]"
+
+# Solo inyección de banner y captura de cookies de sesión (Bloque 4)
+sudo journalctl -u enterprise.service -f --no-pager | grep -E "\[INJECT\]|\[SESSION\]"
 
 # Clientes conectados al AP
 watch -n2 cat /var/lib/misc/dnsmasq.leases
@@ -424,9 +431,172 @@ Los archivos del cert (`/etc/nginx/ssl/elmundo-mitm.crt` y `.key`) **persisten**
 
 ---
 
-### BLOQUE 4 — Lab Webserver: HTTP vs HTTPS (65–80 min) [opcional]
+### BLOQUE 4 — El AP te habla: inyección y robo de sesión (65–80 min)
 
-**Objetivo:** Visualizar lado a lado qué ve el operador en HTTP y qué ve en HTTPS, con un formulario real enviado por los alumnos.
+**Estado del lab al entrar:** MITM ON · DNS spoof OFF (recién desactivado en Bloque 3) · CA de mitmproxy instalada en el navegador del alumno.
+
+**Objetivo:** Demostrar que cuando el cliente confía en la CA del operador, el AP no solo OBSERVA — también MODIFICA lo que el navegador renderiza y CAPTURA sesiones activas sin que nadie se dé cuenta. Doble golpe: lo visible (banner) y lo invisible (cookie hijack).
+
+#### Parte A — Activar la inyección (65–67 min)
+
+```bash
+sudo ./mitm-control.sh inject on
+sudo ./mitm-control.sh status
+```
+
+Debería mostrar:
+
+```text
+[ON]  inject — HTML banner + cookie hijack
+```
+
+Abrir en el terminal del instructor el log filtrado:
+
+```bash
+sudo journalctl -u enterprise.service -f --no-pager | grep -E "\[INJECT\]|\[SESSION\]"
+```
+
+> "He activado algo nuevo. No os digo qué todavía. Seguid navegando con normalidad."
+
+#### Parte B — El banner inesperado (67–72 min)
+
+**Instrucción a alumnos:**
+> "Visitad cualquier sitio HTTPS que NO esté en la lista HSTS preload. Os doy una lista de sitios verificados. Evitad por ahora los grandes (`github.com`, `google.com`, `facebook.com`, `wikipedia.org`, `bbc.com`, `reddit.com`) — todos esos están en HSTS preload y el navegador ni siquiera permite la excepción del certificado, así que la inyección no se aplica."
+
+**Sitios verificados NO en HSTS preload (funcionan bien para el demo):**
+
+- `https://example.com` — clásico, casi seguro va a seguir sin preload
+- `https://news.ycombinator.com` — confirmado en vivo el 2026-05-19
+- `https://www.iana.org`
+- `https://www.archive.org`
+
+**Cómo verificar tú mismo si un dominio está en preload** (Chrome): visita `chrome://net-internals/#hsts` → *Query HSTS/PKP domain* → escribe el dominio. Si `found: true` y `static_sts_domain` aparece, está preloaded.
+
+**Qué van a ver:** un **banner rojo fijo en la parte superior** de cualquier web que carguen, con el mensaje:
+
+> ⚠️ Este contenido fue MODIFICADO por el operador de `CorpNet-Enterprise` — tu navegador no te ha avisado.
+
+Mientras tanto, en el log del instructor:
+
+```text
+[INJECT] example.com/ — banner injected (1256 → 1568 bytes)
+[INJECT] news.ycombinator.com/news — banner injected (32100 → 32412 bytes)
+```
+
+**Punto de discusión (proyectado en pantalla):**
+> "El candado sigue verde. El certificado sigue diciendo *'conexión segura'*. Pero el HTML que renderiza vuestro navegador NO es el que mandó el servidor original. Lo modifiqué yo, en tránsito, sin tocar el cifrado — porque vuestro navegador confía en mi CA."
+
+**Pregunta retórica al grupo:**
+> "Si en vez de un banner rojo hubiera inyectado un `<script>` invisible que lee vuestro `localStorage`, vuestros tokens de sesión, o un formulario falso encima del login real… ¿alguien lo habría notado?"
+
+#### Parte C — El robo silencioso (72–78 min)
+
+> "Lo del banner era lo VISIBLE. Ahora os enseño lo que NO habéis visto."
+
+Pedir a un voluntario que se loggee en algo donde el robo sea aceptable demostrar. Opciones según contexto:
+
+- **Recomendado (controlado):** un servicio dummy del lab — por ejemplo `http://192.168.50.1/send` con el `lab_webserver` (ver Apéndice). No requiere credenciales reales del alumno.
+- **Si hay voluntario consentido:** un sitio HTTPS sin 2FA donde tenga una cuenta de prueba (NUNCA pedir credenciales reales sin consentimiento explícito y por escrito).
+
+En cuanto el alumno haga login, el log del instructor mostrará:
+
+```text
+============================================================
+[SESSION] NEW Set-Cookie from foro.example.com
+[SESSION] Client IP : 192.168.50.102
+[SESSION] Set-Cookie: sessionid=eyJ1aWQiOjQyfQ.aB3c...; Path=/; HttpOnly
+============================================================
+============================================================
+[SESSION] GET https://foro.example.com/profile
+[SESSION] Source IP : 192.168.50.102
+[SESSION] Cookie    : sessionid=eyJ1aWQiOjQyfQ.aB3c...
+[SESSION] Paste-able: document.cookie = 'sessionid=eyJ1aWQiOjQyfQ.aB3c...';
+============================================================
+```
+
+**El punch final (impacto máximo):**
+
+1. Instructor abre **un navegador limpio** (perfil nuevo, incognito) en el equipo de proyección.
+2. Navega al mismo sitio sin loggearse.
+3. Abre DevTools → Console → pega el comando `Paste-able` que muestra el log.
+4. Recarga la página.
+
+**Y aparece logueado como el alumno**, sin haber tecleado nunca su password.
+
+> "Esto se llama *session hijacking*. La cookie es la sesión. Una vez la tengo, no necesito ni vuestro password ni vuestro 2FA — ya estoy DENTRO. Y vosotros no veis nada raro en vuestra pantalla."
+
+#### Parte D — Discusión y defensas (78–80 min)
+
+**Tres preguntas para abrir el debate:**
+
+1. *¿Qué defensa habría parado el banner?*
+   - **HSTS preload** (sitios como `github.com` no permiten excepciones de cert ni siquiera con CA instalada).
+   - **Subresource Integrity (SRI)** + **Content Security Policy (CSP)** — pero solo protegen recursos, no el HTML principal.
+   - **No instalar nunca CAs de terceros en el dispositivo.**
+
+2. *¿Qué defensa habría parado el robo de sesión?*
+   - **Cookie con flag `HttpOnly`** → no protege contra MITM, solo contra XSS. Aquí no aplica.
+   - **Token binding / DPoP** → cookie ligada al canal TLS o a una clave del cliente. Aún poco desplegado.
+   - **2FA en cada acción crítica** → no impide el hijack, pero limita el daño.
+   - **La defensa real: que el cliente no acepte la CA del operador.**
+
+3. *Si esto pasa en una WiFi pública de un aeropuerto y el aeropuerto te pide instalar su certificado raíz para "navegar mejor"… ¿qué haces?*
+   - Datos móviles. Siempre.
+
+#### Cleanup del bloque
+
+```bash
+sudo ./mitm-control.sh inject off
+sudo ./mitm-control.sh status   # confirma [OFF] inject
+```
+
+> "Apago la inyección. A partir de ahora, lo que reciben vuestros navegadores vuelve a ser lo que manda el servidor original — pero la interceptación TLS sigue activa porque sigo siendo el operador."
+
+---
+
+### BLOQUE 5 — Análisis de captura PCAP (80–87 min)
+
+```bash
+sudo IFACE=wlan0 DURATION_SEC=120 LOG_DIR=/tmp/lab_cap ./soc_monitor.sh
+ls -lh /tmp/lab_cap/
+```
+
+Si hay Wireshark disponible, abrir el `.pcap` y mostrar:
+
+- Filtro `http` → peticiones en claro
+- Filtro `tls.handshake.extensions_server_name` → todos los dominios visitados
+- Filtro `dns` → resoluciones (incluyendo la de google.com resuelta a 192.168.50.1)
+
+> "Incluso sin descifrar TLS, con el SNI y los patrones de tiempo y volumen un analista puede construir un perfil completo de actividad."
+
+---
+
+### BLOQUE 6 — Debate y cierre (87–90 min)
+
+**Preguntas para debate abierto:**
+
+1. *¿Tiene una empresa derecho a inspeccionar el tráfico TLS de sus empleados en la red corporativa?*
+   - Respuesta legal: depende del país y de si hay política de uso firmada.
+   - En muchos países: sí, si está documentado y el empleado ha sido informado.
+
+2. *Soy empleado y uso un dispositivo personal en la red corporativa con inspección TLS. ¿Qué riesgos asumo?*
+   - La empresa puede ver todo el tráfico del dispositivo.
+   - Solución: datos móviles para tráfico personal, VPN propia en modo split tunnel.
+
+3. *Un aeropuerto me pide instalar un certificado para acceder a su WiFi. ¿Lo hago?*
+   - No. Nunca. Usa datos móviles en su lugar.
+
+4. *¿Qué diferencia hay entre un proxy corporativo TLS y tu ISP viendo tu tráfico?*
+   - El proxy TLS ve el contenido cifrado también. El ISP solo ve metadatos si usas HTTPS.
+
+**Mensaje de cierre:**
+> "La seguridad no es un estado binario. Es un conjunto de decisiones informadas. Hoy habéis aprendido a no delegar esas decisiones al candado del navegador."
+
+---
+
+## Apéndice A — Lab Webserver: HTTP vs HTTPS (opcional)
+
+**Cuándo usarlo:** sustituto o complemento del Bloque 4 cuando el grupo necesita un demo más controlado y pedagógico (sin webs reales) para visualizar lado a lado qué ve el operador en HTTP frente a HTTPS, con un formulario enviado por los propios alumnos. También funciona como "víctima controlada" para el robo de sesión del Bloque 4 sin recurrir a credenciales reales.
 
 **Lanzar el servidor:**
 
@@ -521,46 +691,6 @@ systemctl status lab-webserver
 ```bash
 sudo ./mitm-control.sh webserver off
 ```
-
----
-
-### BLOQUE 5 — Análisis de captura PCAP (80–87 min)
-
-```bash
-sudo IFACE=wlan0 DURATION_SEC=120 LOG_DIR=/tmp/lab_cap ./soc_monitor.sh
-ls -lh /tmp/lab_cap/
-```
-
-Si hay Wireshark disponible, abrir el `.pcap` y mostrar:
-
-- Filtro `http` → peticiones en claro
-- Filtro `tls.handshake.extensions_server_name` → todos los dominios visitados
-- Filtro `dns` → resoluciones (incluyendo la de google.com resuelta a 192.168.50.1)
-
-> "Incluso sin descifrar TLS, con el SNI y los patrones de tiempo y volumen un analista puede construir un perfil completo de actividad."
-
----
-
-### BLOQUE 6 — Debate y cierre (87–90 min)
-
-**Preguntas para debate abierto:**
-
-1. *¿Tiene una empresa derecho a inspeccionar el tráfico TLS de sus empleados en la red corporativa?*
-   - Respuesta legal: depende del país y de si hay política de uso firmada.
-   - En muchos países: sí, si está documentado y el empleado ha sido informado.
-
-2. *Soy empleado y uso un dispositivo personal en la red corporativa con inspección TLS. ¿Qué riesgos asumo?*
-   - La empresa puede ver todo el tráfico del dispositivo.
-   - Solución: datos móviles para tráfico personal, VPN propia en modo split tunnel.
-
-3. *Un aeropuerto me pide instalar un certificado para acceder a su WiFi. ¿Lo hago?*
-   - No. Nunca. Usa datos móviles en su lugar.
-
-4. *¿Qué diferencia hay entre un proxy corporativo TLS y tu ISP viendo tu tráfico?*
-   - El proxy TLS ve el contenido cifrado también. El ISP solo ve metadatos si usas HTTPS.
-
-**Mensaje de cierre:**
-> "La seguridad no es un estado binario. Es un conjunto de decisiones informadas. Hoy habéis aprendido a no delegar esas decisiones al candado del navegador."
 
 ---
 
