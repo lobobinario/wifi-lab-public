@@ -461,14 +461,16 @@ sudo journalctl -u enterprise.service -f --no-pager | grep -E "\[INJECT\]|\[SESS
 #### Parte B — El banner inesperado (67–72 min)
 
 **Instrucción a alumnos:**
-> "Visitad cualquier sitio HTTPS que uséis a diario: Wikipedia, YouTube, Reddit, vuestro correo, lo que sea. Cualquiera que no esté en HSTS preload (evita por ahora `github.com`, `google.com`, `facebook.com`)."
+> "Visitad cualquier sitio HTTPS que NO esté en la lista HSTS preload. Os doy una lista de sitios verificados. Evitad por ahora los grandes (`github.com`, `google.com`, `facebook.com`, `wikipedia.org`, `bbc.com`, `reddit.com`) — todos esos están en HSTS preload y el navegador ni siquiera permite la excepción del certificado, así que la inyección no se aplica."
 
-**Sitios recomendados que NO están en HSTS preload y funcionan bien para el demo:**
+**Sitios verificados NO en HSTS preload (funcionan bien para el demo):**
 
-- `https://es.wikipedia.org`
-- `https://www.bbc.com`
-- `https://news.ycombinator.com`
-- `https://www.reddit.com`
+- `https://example.com` — clásico, casi seguro va a seguir sin preload
+- `https://news.ycombinator.com` — confirmado en vivo el 2026-05-19
+- `https://www.iana.org`
+- `https://www.archive.org`
+
+**Cómo verificar tú mismo si un dominio está en preload** (Chrome): visita `chrome://net-internals/#hsts` → *Query HSTS/PKP domain* → escribe el dominio. Si `found: true` y `static_sts_domain` aparece, está preloaded.
 
 **Qué van a ver:** un **banner rojo fijo en la parte superior** de cualquier web que carguen, con el mensaje:
 
@@ -477,12 +479,12 @@ sudo journalctl -u enterprise.service -f --no-pager | grep -E "\[INJECT\]|\[SESS
 Mientras tanto, en el log del instructor:
 
 ```text
-[INJECT] es.wikipedia.org/wiki/Espa%C3%B1a — banner injected (84512 → 84932 bytes)
-[INJECT] www.bbc.com/news — banner injected (192448 → 192868 bytes)
+[INJECT] example.com/ — banner injected (1256 → 1568 bytes)
+[INJECT] news.ycombinator.com/news — banner injected (32100 → 32412 bytes)
 ```
 
 **Punto de discusión (proyectado en pantalla):**
-> "El candado sigue verde. El certificado sigue diciendo *'conexión segura'*. Pero el HTML que renderiza vuestro navegador NO es el que mandó Wikipedia. Lo modifiqué yo, en tránsito, sin tocar el cifrado — porque vuestro navegador confía en mi CA."
+> "El candado sigue verde. El certificado sigue diciendo *'conexión segura'*. Pero el HTML que renderiza vuestro navegador NO es el que mandó el servidor original. Lo modifiqué yo, en tránsito, sin tocar el cifrado — porque vuestro navegador confía en mi CA."
 
 **Pregunta retórica al grupo:**
 > "Si en vez de un banner rojo hubiera inyectado un `<script>` invisible que lee vuestro `localStorage`, vuestros tokens de sesión, o un formulario falso encima del login real… ¿alguien lo habría notado?"
